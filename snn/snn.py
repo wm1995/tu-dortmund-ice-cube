@@ -20,24 +20,24 @@ dr = 0.1 # Dropout rate
 lr = 0.0001 # Learning rate
 
 # Get data in
-rawData = pd.read_csv('../../data/toyDataset/toyDataset.csv', sep=';', index_col=0)    # Import data
-filteredColumns = pd.read_csv('../filtered.csv')                                       # Import filtered columns
+raw_data = pd.read_csv('/fhgfs/users/wmartin/toyDataset/toyDataset.csv', sep=';', index_col=0)    # Import data
+filtered_columns = pd.read_csv('../filtered.csv')                                       # Import filtered columns
 
 # Select filtered data, scale to have mean 0 and stdev 1
-data = StandardScaler().fit_transform(rawData[filteredColumns.columns.tolist()])
+data = StandardScaler().fit_transform(raw_data[filtered_columns.columns.tolist()])
 
 # Convert labels from binary classes to one-hot vector
-labels = to_categorical(rawData['label'])
+labels = to_categorical(raw_data['label'])
 
 # Split data
-trainData, testData, trainLabels, testLabels = train_test_split(data, labels, test_size=0.1)
+train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.1)
 
 # Prepare TensorBoard
-tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True, write_images=True)
+tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
 
 model = Sequential()
 
-model.add(Dense(64, input_shape = (169,), activation='selu'))
+model.add(Dense(64, input_shape=(169,), activation='selu'))
 model.add(AlphaDropout(dr))
 model.add(Dense(128, activation='selu'))
 model.add(AlphaDropout(dr))
@@ -51,9 +51,9 @@ model.add(Dense(64, activation='selu'))
 model.add(AlphaDropout(dr))
 model.add(Dense(2, activation='softmax'))
 
-model.compile(optimizer = Adam(lr = lr), loss='categorical_crossentropy', metrics=['accuracy'])
-model.fit(trainData, trainLabels, epochs = 200, batch_size = 128, verbose = 1, validation_split = 0.1, shuffle = True, callbacks=[tb])
+model.compile(optimizer=Adam(lr=lr), loss='categorical_crossentropy', metrics=['accuracy'])
+model.fit(train_data, train_labels, epochs=200, batch_size=128, verbose=1, validation_split=0.1, shuffle=True, callbacks=[tb])
 
-model.evaluate(testData, testLabels)
-testPreds = model.predict(testData)
-print "Test AUC:", roc_auc_score(testLabels, testPreds)
+model.evaluate(test_data, test_labels)
+test_preds = model.predict(test_data)
+print "Test AUC:", roc_auc_score(test_labels, test_preds)
