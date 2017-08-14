@@ -1,11 +1,15 @@
 # .gitignore file for repository
 
-# Ignore Visual Studio folder, Keras logs folders
+# Ignore Visual Studio folder, Keras logs folders, plots folders
 /**/.vscode/**/
-#/**/logs/**/
+/**/logs/**/
+/**/plots/**/
 
 # Ignore .pyc files
 *.pyc
 
 # Ignore emacs temp files
-**~
+*~
+
+# Ignore .csv files
+*.csv
