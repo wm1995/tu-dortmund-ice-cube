@@ -61,7 +61,7 @@ config = tf.ConfigProto(
 sess = tf.Session(config=config)
 K.set_session(sess)
 
-model = load_model(args.filename, custom_objects=custom_obj_dict)
+model = load_model('/fhgfs/users/wmartin/models/' + args.filename, custom_objects=custom_obj_dict)
 
 testPreds = None
 if args.load_data:
