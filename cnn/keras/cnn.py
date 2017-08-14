@@ -17,6 +17,7 @@ from keras import backend as K
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Conv1D, Flatten, Reshape
 from keras.utils import to_categorical, Sequence
+from keras.regularizers import l2
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 
@@ -88,24 +89,29 @@ def main(
     # Define model
     model = Sequential()
 
+    # Set up regulariser
+    regulariser = None
+    if params['regularise']:
+        regulariser = l2(0.01)
+
     # Reshape input to fit with Conv1D
     model.add(Reshape((128, 1), input_shape = (128,)))
 
     # Start with convolutional layers
-    model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', activation='relu'))
+    model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
     model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', activation='relu'))
+    model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
     model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', activation='relu'))
+    model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
     model.add(Dropout(params['conv_dr']))
 
     # Flatten before fully connected layer
     model.add(Flatten())
 
     # Fully connected layers
-    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
     model.add(Dropout(params['fc_dr']))
-    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(2, activation='softmax'))
 
@@ -231,6 +237,13 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+            '-r', '--regularise', 
+            help='uses regularisation on each layer',
+            action='store_true', dest='regularise', 
+            default=False
+        )
+
+    parser.add_argument(
             '-t', '--no-threads', 
             help='sets limit on the number of threads to be used (default = 10, if no limit set to -1)',
             type=int, dest='no_threads', 
@@ -255,7 +268,8 @@ if __name__ == "__main__":
         'no_epochs': args.no_epochs,
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
-        'batch_norm': args.batch_norm
+        'batch_norm': args.batch_norm,
+        'regularise': args.regularise
     }
 
     main(params=params, no_threads=args.no_threads, verbose=args.verbose)

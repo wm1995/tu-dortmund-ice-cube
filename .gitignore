@@ -1,8 +1,5 @@
 # .gitignore file for repository
 
-# Ignore Visual Studio folder
+# Ignore Visual Studio folder, Keras logs folders
 .vscode/**/
-
-# Ignore models and their metadata
-*.h5
-model_summary.csv
+/**/logs/**/
