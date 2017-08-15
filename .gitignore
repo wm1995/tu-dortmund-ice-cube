@@ -1,9 +1,9 @@
 # .gitignore file for repository
 
 # Ignore Visual Studio folder, Keras logs folders, plots folders
-/**/.vscode/**/
-/**/logs/**/
-/**/plots/**/
+.vscode/
+logs/
+plots/
 
 # Ignore .pyc files
 *.pyc
