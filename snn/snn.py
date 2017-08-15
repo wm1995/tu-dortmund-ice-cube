@@ -15,7 +15,8 @@ from myTools.metrics.sklearn import print_metric_results
 import tensorflow as tf
 from keras import backend as K
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Conv1D, Flatten, Reshape
+from keras.layers import Dense, Activation, Conv1D, Flatten, Reshape
+from keras.layers.noise import AlphaDropout
 from keras.utils import to_categorical, Sequence
 from keras.regularizers import l2
 from keras.optimizers import Adam
