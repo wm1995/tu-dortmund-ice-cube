@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# CNN (neat version)
+# SNN
 
 from __future__ import division, print_function
 
@@ -26,31 +26,28 @@ def main(
         data=None,
         params={
             'lr': 0.001,
-            'conv_dr': 0.7,
-            'fc_dr': 0.5,
+            'dr': 0.1,
             'batch_size': 128,
             'no_epochs': 1000,
             'steps_per_epoch': 100,
             'dp_prob': 0.5,
-            'batch_norm': False,
-            'regularise': False
+            'batch_norm': False
         },
         no_threads=10,
         verbose=True
     ):
     """
-    Runs a convolutional neural network on the waveform data, saving the model to the filestore
+    Runs a self-normalising neural network on the waveform data, saving the model to the filestore
     Requires a directory called 'logs' in the same folder for the TensorBoard visualisation
     
     The current neural network structure is:
-        conv > dropout > conv > dropout > conv > dropout > fc > dropout > fc > dropout > softmax
+        fc > dropout > fc > dropout > fc > dropout > fc > dropout > softmax
 
     Arguments:
         data - the Datasets object to run on, if None then loads data (default = None)
         params - a dictionary object containing the following parameters
             lr - the learning rate of the Adam optimiser (default = 0.001)
-            conv_dr - the dropout rate after the convolutional layers (default = 0.7)
-            fc_dr - the dropout rate after the fully-connected layers (default = 0.5)
+            dr - the dropout rate for the alpha dropout layers (default = 0.1)
             no_epochs - the number of epochs to run for
             steps_per_epoch - the number of batches in each epoch
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
@@ -96,25 +93,14 @@ def main(
     if params['regularise']:
         regulariser = l2(0.01)
 
-    # Reshape input to fit with Conv1D
-    model.add(Reshape((128, 1), input_shape = (128,)))
-
-    # Start with convolutional layers
-    model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
-    model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
-    model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
-    model.add(Dropout(params['conv_dr']))
-
-    # Flatten before fully connected layer
-    model.add(Flatten())
-
-    # Fully connected layers
-    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
-    model.add(Dropout(params['fc_dr']))
-    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
-    model.add(Dropout(params['fc_dr']))
+    model.add(Dense(1024, input_shape=(128,), activation='selu', kernel_regularizer=regulariser))
+    model.add(AlphaDropout(params['dr']))
+    model.add(Dense(1024, activation='selu', kernel_regularizer=regulariser))
+    model.add(AlphaDropout(params['dr']))
+    model.add(Dense(1024, activation='selu', kernel_regularizer=regulariser))
+    model.add(AlphaDropout(params['dr']))
+    model.add(Dense(64, activation='selu', kernel_regularizer=regulariser))
+    model.add(AlphaDropout(params['dr']))
     model.add(Dense(2, activation='softmax'))
 
     # Set-up optimiser
@@ -155,7 +141,7 @@ def main(
 
     # Save model
     datetime = time.strftime("%Y%m%d_%H%M%S_")
-    save_path = '/fhgfs/users/wmartin/models/' + datetime + 'cnnKeras.h5'
+    save_path = '/fhgfs/users/wmartin/models/' + datetime + 'snnKeras.h5'
     model.save(save_path)
     print("Model saved to " + save_path)
 
@@ -177,7 +163,7 @@ if __name__ == "__main__":
     # Initialise the arg parser
     parser = argparse.ArgumentParser(
             description="""
-            Runs a convolutional neural network on the waveform data.
+            Runs a self-normalising neural network on the waveform data.
             """
         )
     
@@ -190,17 +176,10 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-            '-c', '--conv-dropout', 
-            help='sets the convolutional layer dropout rate',
-            type=float, dest='conv_dr', 
-            default=0.7
-        )
-
-    parser.add_argument(
-            '-f', '--fc-dropout', 
-            help='sets the fully-connected layer dropout rate',
-            type=float, dest='fc_dr', 
-            default=0.5
+            '-d', '--dropout', 
+            help='sets the dropout rate for the alpha dropout layers',
+            type=float, dest='dr', 
+            default=0.1
         )
 
     parser.add_argument(
@@ -264,8 +243,7 @@ if __name__ == "__main__":
 
     params = {
         'lr': args.lr,
-        'conv_dr': args.conv_dr,
-        'fc_dr': args.fc_dr,
+        'dr': args.dr,
         'batch_size': args.batch_size,
         'no_epochs': args.no_epochs,
         'steps_per_epoch': args.steps_per_epoch,
