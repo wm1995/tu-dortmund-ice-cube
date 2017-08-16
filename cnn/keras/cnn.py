@@ -4,7 +4,6 @@
 from __future__ import division, print_function
 
 import numpy as np
-import time
 import argparse
 
 from myTools.data_loader import load_data
@@ -154,18 +153,8 @@ def main(
         )
 
     # Save model
-    datetime = time.strftime("%Y%m%d_%H%M%S_")
-    save_path = '/fhgfs/users/wmartin/models/' + datetime + 'cnnKeras.h5'
-    model.save(save_path)
-    print("Model saved to " + save_path)
-
-    # To reload model:
-    #     1) from keras.models import load_model
-    #     2) Define precision function (NB requires from keras import backend as K)
-    #     3) model = load_model('/fhgfs/users/wmartin/cnnKeras.h5', custom_objects={'precision': precision})
-
-    # Need to consider saving the initial scaling?
-
+    save_model(model, 'cnn', params, verbose=verbose)
+    
     # Evaluate model
     test_preds = model.predict(data.val.waveforms, verbose=int(verbose))
     print()

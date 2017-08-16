@@ -4,13 +4,13 @@
 from __future__ import division, print_function
 
 import numpy as np
-import time
 import argparse
 
 from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
+from myTools.model_tools import save_model
 
 import tensorflow as tf
 from keras import backend as K
@@ -27,7 +27,8 @@ def main(
         data=None,
         params={
             'lr': 0.001,
-            'dr': 0.1,
+            'conv_dr': 0.,
+            'fc_dr': 0.1,
             'batch_size': 128,
             'no_epochs': 1000,
             'steps_per_epoch': 100,
@@ -48,11 +49,12 @@ def main(
         data - the Datasets object to run on, if None then loads data (default = None)
         params - a dictionary object containing the following parameters
             lr - the learning rate of the Adam optimiser (default = 0.001)
-            dr - the dropout rate for the alpha dropout layers (default = 0.1)
+            conv_dr - unused
+            fc_dr - the dropout rate for the alpha dropout layers (default = 0.1)
             no_epochs - the number of epochs to run for
             steps_per_epoch - the number of batches in each epoch
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
-            batch_norm - if true, use batch norm after each layer (not currently implemented)
+            batch_norm - unused
             regularise - if true, uses L2 regularisation on the weights for each layer (default = False)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
@@ -95,13 +97,13 @@ def main(
         regulariser = l2(0.01)
 
     model.add(Dense(1024, input_shape=(128,), activation='selu', kernel_regularizer=regulariser))
-    model.add(AlphaDropout(params['dr']))
+    model.add(AlphaDropout(params['fc_dr']))
     model.add(Dense(1024, activation='selu', kernel_regularizer=regulariser))
-    model.add(AlphaDropout(params['dr']))
+    model.add(AlphaDropout(params['fc_dr']))
     model.add(Dense(1024, activation='selu', kernel_regularizer=regulariser))
-    model.add(AlphaDropout(params['dr']))
+    model.add(AlphaDropout(params['fc_dr']))
     model.add(Dense(64, activation='selu', kernel_regularizer=regulariser))
-    model.add(AlphaDropout(params['dr']))
+    model.add(AlphaDropout(params['fc_dr']))
     model.add(Dense(2, activation='softmax'))
 
     # Set-up optimiser
@@ -141,18 +143,8 @@ def main(
         )
 
     # Save model
-    datetime = time.strftime("%Y%m%d_%H%M%S_")
-    save_path = '/fhgfs/users/wmartin/models/' + datetime + 'snnKeras.h5'
-    model.save(save_path)
-    print("Model saved to " + save_path)
-
-    # To reload model:
-    #     1) from keras.models import load_model
-    #     2) Define precision function (NB requires from keras import backend as K)
-    #     3) model = load_model('/fhgfs/users/wmartin/cnnKeras.h5', custom_objects={'precision': precision})
-
-    # Need to consider saving the initial scaling?
-
+    save_model(model, 'snn', params, verbose=verbose)
+    
     # Evaluate model
     test_preds = model.predict(data.val.waveforms, verbose=int(verbose))
     print()
@@ -179,7 +171,7 @@ if __name__ == "__main__":
     parser.add_argument(
             '-d', '--dropout', 
             help='sets the dropout rate for the alpha dropout layers',
-            type=float, dest='dr', 
+            type=float, dest='fc_dr', 
             default=0.1
         )
 
@@ -212,13 +204,6 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-            '-n', '--batch-norm', 
-            help='uses batch normalisation after each layer (currently not implemented)',
-            action='store_true', dest='batch_norm', 
-            default=False
-        )
-
-    parser.add_argument(
             '-r', '--regularise', 
             help='uses regularisation on each layer',
             action='store_true', dest='regularise', 
@@ -244,12 +229,13 @@ if __name__ == "__main__":
 
     params = {
         'lr': args.lr,
-        'dr': args.dr,
+        'conv_dr': 0.,
+        'fc_dr': args.fc_dr,
         'batch_size': args.batch_size,
         'no_epochs': args.no_epochs,
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
-        'batch_norm': args.batch_norm,
+        'batch_norm': False,
         'regularise': args.regularise
     }
 
