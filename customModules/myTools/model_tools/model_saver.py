@@ -17,7 +17,7 @@ def save_model(model, nn_str, params, comment="", verbose=False):
     Arguments
         model - the Keras model to be saved
         nn_str - the string specifying what type of model was trained (e.g. "cnn", "snn", etc.)
-                 (only used for the filename)
+                 (only used for the filename - no commas or forward-slashes!)
         params - the parameter dictionary for the model, of the following format
             lr - the learning rate of the Adam optimiser
             conv_dr - the dropout rate after the convolutional layers
@@ -35,8 +35,8 @@ def save_model(model, nn_str, params, comment="", verbose=False):
     """
     # Save model
     datetime = time.strftime("%Y%m%d_%H%M%S_")
-    save_path = MODEL_DIR + datetime + nn_str + 'Keras.h5'
-    model.save(save_path)
+    model_name = datetime + nn_str + 'Keras.h5'
+    model.save(MODEL_DIR + model_name)
     
     if verbose:
         print("Model saved to " + save_path)
@@ -47,6 +47,10 @@ def save_model(model, nn_str, params, comment="", verbose=False):
         reader = csv.DictReader(csvfile)
         fields = reader.fieldnames
 
+        # Add model_name to parameter dictionary
+        # Replace all commas, forward slashes with underscores
+        params['model_name'] = model_name.replace(",", "_").replace("/", "_")
+        
         # Add comment to parameter dictionary
         # Replace all commas with semicolons
         params['comments'] = comment.replace(",", ";")
