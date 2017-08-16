@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# CNN (neat version)
+# CNN
 
 from __future__ import division, print_function
 
@@ -10,7 +10,7 @@ from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
-from myTools.model_tools import save_model
+from myTools.model_tools.model_saver import save_model
 
 import tensorflow as tf
 from keras import backend as K
