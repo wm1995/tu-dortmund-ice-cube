@@ -28,6 +28,7 @@ def save_model(model, nn_str, params, comment="", verbose=False):
             batch_norm - if true, use batch norm after each layer
             regularise - if true, uses L2 regularisation on the weights for each layer
         comment - string to put in comments field in CSV (default: "")
+                  (commas will be replaced with semicolons!)
         verbose - if True, prints when model is saved (default: False)
 
     No returns
@@ -47,10 +48,11 @@ def save_model(model, nn_str, params, comment="", verbose=False):
         fields = reader.fieldnames
 
         # Add comment to parameter dictionary
-        params['comments'] = comment
+        # Replace all commas with semicolons
+        params['comments'] = comment.replace(",", ";")
 
         # Write param dictionary to file
-        writer = csv.DictWriter(csvfile, headers)
+        writer = csv.DictWriter(csvfile, fields)
         writer.writerow(params)
 
     if verbose:
