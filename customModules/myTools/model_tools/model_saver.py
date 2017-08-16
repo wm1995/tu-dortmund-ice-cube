@@ -36,7 +36,8 @@ def save_model(model, nn_str, params, comment="", verbose=False):
     # Save model
     datetime = time.strftime("%Y%m%d_%H%M%S_")
     model_name = datetime + nn_str + 'Keras.h5'
-    model.save(MODEL_DIR + model_name)
+    save_path = MODEL_DIR + model_name
+    model.save(save_path)
     
     if verbose:
         print("Model saved to " + save_path)
