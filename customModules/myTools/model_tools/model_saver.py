@@ -18,8 +18,15 @@ def save_model(model, nn_str, params, comment="", verbose=False):
         model - the Keras model to be saved
         nn_str - the string specifying what type of model was trained (e.g. "cnn", "snn", etc.)
                  (only used for the filename)
-        params - the parameter dictionary for the model
-                 (for format see the Keras cnn.py or snn.py)
+        params - the parameter dictionary for the model, of the following format
+            lr - the learning rate of the Adam optimiser
+            conv_dr - the dropout rate after the convolutional layers
+            fc_dr - the dropout rate after the fully-connected layers
+            no_epochs - the number of epochs to run for
+            steps_per_epoch - the number of batches in each epoch
+            dp_prob - the proportion of double pulse waveforms shown at train time
+            batch_norm - if true, use batch norm after each layer
+            regularise - if true, uses L2 regularisation on the weights for each layer
         comment - string to put in comments field in CSV (default: "")
         verbose - if True, prints when model is saved (default: False)
 
