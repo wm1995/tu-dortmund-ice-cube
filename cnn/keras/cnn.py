@@ -10,6 +10,7 @@ from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
+from myTools.model_tools import save_model
 
 import tensorflow as tf
 from keras import backend as K
