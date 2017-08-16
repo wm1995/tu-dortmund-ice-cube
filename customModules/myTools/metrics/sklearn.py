@@ -19,7 +19,7 @@ def threshold_confusion_matrix(y_true, y_pred, th=0.5):
         A confusion matrix
     """
     # This statement flattens vectors from one-hot, thresholds predictions
-    return confusion_matrix(y_true.nonzero()[1], y_pred[:, 1] > th)
+    return confusion_matrix(y_true, y_pred > th)
 
 def threshold_weighted_confusion_matrix(y_true, y_pred, weights, th=0.5):
     """Confusion matrix with threshold in predictions
@@ -34,7 +34,7 @@ def threshold_weighted_confusion_matrix(y_true, y_pred, weights, th=0.5):
         A confusion matrix
     """
     # This statement flattens vectors from one-hot, thresholds predictions
-    return weighted_confusion_matrix(y_true.nonzero()[1], y_pred[:, 1] > th, weights)
+    return weighted_confusion_matrix(y_true, y_pred > th, weights)
 
 def threshold_weighted_unique_confusion_matrix(y_true, y_pred, weights, ids, th=0.5):
     """Confusion matrix with threshold in predictions
@@ -49,7 +49,7 @@ def threshold_weighted_unique_confusion_matrix(y_true, y_pred, weights, ids, th=
         A confusion matrix
     """
     # This statement flattens vectors from one-hot, thresholds predictions
-    return weighted_unique_confusion_matrix(y_true.nonzero()[1], y_pred[:, 1] > th, weights, ids)
+    return weighted_unique_confusion_matrix(y_true, y_pred > th, weights, ids)
 
 def metric_summary(y_true, y_pred, th=0.5):
     """Confusion matrix with threshold in predictions

@@ -15,8 +15,8 @@ def precision(y_true, y_pred):
 
     For use on tf.Tensor objects.
     """
-    true_positives = K.sum(K.round(y_true[:, 1] * y_pred[:, 1]))
-    predicted_positives = K.sum(K.round(y_pred[:, 1]))
+    true_positives = K.sum(K.round(y_true * y_pred))
+    predicted_positives = K.sum(K.round(y_pred))
     precision = true_positives / (predicted_positives + K.epsilon())
     return precision
 
@@ -32,8 +32,8 @@ def recall(y_true, y_pred):
 
     For use on tf.Tensor objects.
     """
-    true_positives = K.sum(K.round(y_true[:, 1] * y_pred[:, 1]))
-    possible_positives = K.sum(K.round(y_true[:, 1]))
+    true_positives = K.sum(K.round(y_true * y_pred))
+    possible_positives = K.sum(K.round(y_true))
     recall = true_positives / (possible_positives + K.epsilon())
     return recall
 

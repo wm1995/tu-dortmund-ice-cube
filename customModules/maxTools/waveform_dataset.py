@@ -390,10 +390,12 @@ def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8,
                 ids = unique_id[mask]
                 lbl = 0
 
-            def labels(shape, lbl, n_classes=2):
-                labels = np.zeros((shape, n_classes))
-                labels[:, lbl] = 1
-                return labels
+            def labels(shape, lbl):
+                # Returns 1D array of binary labels
+                if lbl == 1:
+                    return np.ones(shape)
+                else:
+                    return np.zeros(shape)
 
             num_examples = comp_wfs.shape[0]
             train_index, test_index, val_index = get_indices(num_examples, train_ratio = train_ratio, test_ratio = test_ratio)

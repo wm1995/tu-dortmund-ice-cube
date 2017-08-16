@@ -104,7 +104,7 @@ def main(
     model.add(AlphaDropout(params['fc_dr']))
     model.add(Dense(64, activation='selu', kernel_regularizer=regulariser))
     model.add(AlphaDropout(params['fc_dr']))
-    model.add(Dense(2, activation='softmax'))
+    model.add(Dense(1, activation='sigmoid'))
 
     # Set-up optimiser
     optimiser = Adam(lr=params['lr'])
@@ -112,7 +112,7 @@ def main(
     # Create model
     model.compile(
             optimizer=optimiser, 
-            loss='categorical_crossentropy', 
+            loss='binary_crossentropy', 
             metrics=['accuracy', precision, recall, f1]
         )
 
@@ -143,7 +143,7 @@ def main(
         )
 
     # Save model
-    save_model(model, 'snn', params, verbose=verbose)
+    save_model(model, 'snn_sigmoid_', params, verbose=verbose)
     
     # Evaluate model
     test_preds = model.predict(data.val.waveforms, verbose=int(verbose))
