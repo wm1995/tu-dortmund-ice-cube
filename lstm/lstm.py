@@ -36,6 +36,7 @@ def main(
             'batch_norm': False
         },
         no_threads=10,
+        implementation=0,
         verbose=True
     ):
     """
@@ -58,6 +59,10 @@ def main(
             batch_norm - unused
             regularise - if true, uses L2 regularisation on the weights for each layer (default = False)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
+        implementation - sets the implementation used by Keras for the LSTM layers (default = 0)
+            0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
+            1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
+            2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
         verbose - dictates the amount of output that keras gives
     
     No returns
@@ -97,21 +102,30 @@ def main(
     if params['regularise']:
         regulariser = l2(0.01)
 
-    model.add(LSTM(1024,
-            input_shape=(128,),
+    model.add(LSTM(128,
+            input_shape=(128, 1),
+            input_length = 128,
             dropout=params['fc_dr'],
             recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser
+            kernel_regularizer=regulariser,
+            unroll=True,
+            return_sequences=True,
+            implementation=implementation
         ))
-    model.add(LSTM(1024,
+    model.add(LSTM(128,
             dropout=params['fc_dr'],
             recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser
+            kernel_regularizer=regulariser,
+            unroll=True,
+            return_sequences=True,
+            implementation=implementation
         ))
-    model.add(LSTM(1024,
+    model.add(LSTM(128,
             dropout=params['fc_dr'],
             recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser
+            kernel_regularizer=regulariser,
+            unroll=True,
+            implementation=implementation
         ))
     model.add(Dense(2, activation='softmax'))
 
@@ -227,6 +241,16 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+            '-i', '--implementation', 
+            help='''sets the implementation used by Keras for the LSTM layers (default = 0)
+            \t0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
+            \t1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
+            \t2 - Combines different gates in LSTM into one matrix (more efficient on GPU)''',
+            type=int, dest='implementation',
+            default=0 
+        )
+
+    parser.add_argument(
             '-t', '--no-threads', 
             help='sets limit on the number of threads to be used (default = 10, if no limit set to -1)',
             type=int, dest='no_threads', 
@@ -255,4 +279,9 @@ if __name__ == "__main__":
         'regularise': args.regularise
     }
 
-    main(params=params, no_threads=args.no_threads, verbose=args.verbose)
+    main(
+            params=params, 
+            no_threads=args.no_threads, 
+            verbose=args.verbose, 
+            implementation=args.implementation
+        )
