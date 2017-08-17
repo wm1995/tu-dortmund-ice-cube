@@ -102,8 +102,11 @@ def main(
     if params['regularise']:
         regulariser = l2(0.01)
 
+    # Reshape input to fit with LSTM
+    model.add(Reshape((128, 1), input_shape = (128,)))
+
+    # Define model
     model.add(LSTM(128,
-            input_shape=(128, 1),
             dropout=params['fc_dr'],
             recurrent_dropout=params['conv_dr'],
             kernel_regularizer=regulariser,
