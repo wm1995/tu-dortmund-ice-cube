@@ -15,8 +15,8 @@ from myTools.model_tools.model_saver import save_model
 import tensorflow as tf
 from keras import backend as K
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Conv1D, Flatten, Reshape
-from keras.layers.noise import AlphaDropout
+from keras.layers import Dense
+from keras.layers.recurrent import LSTM
 from keras.utils import to_categorical, Sequence
 from keras.regularizers import l2
 from keras.optimizers import Adam
@@ -97,20 +97,20 @@ def main(
     if params['regularise']:
         regulariser = l2(0.01)
 
-    model.add(LSTM(1024, 
-            input_shape=(128,), 
-            dropout=params['fc_dr'], 
-            recurrent_dropout=params['conv_dr'], 
+    model.add(LSTM(1024,
+            input_shape=(128,),
+            dropout=params['fc_dr'],
+            recurrent_dropout=params['conv_dr'],
             kernel_regularizer=regulariser
         ))
-    model.add(LSTM(1024, 
-            dropout=params['fc_dr'], 
-            recurrent_dropout=params['conv_dr'], 
+    model.add(LSTM(1024,
+            dropout=params['fc_dr'],
+            recurrent_dropout=params['conv_dr'],
             kernel_regularizer=regulariser
         ))
-    model.add(LSTM(1024, 
-            dropout=params['fc_dr'], 
-            recurrent_dropout=params['conv_dr'], 
+    model.add(LSTM(1024,
+            dropout=params['fc_dr'],
+            recurrent_dropout=params['conv_dr'],
             kernel_regularizer=regulariser
         ))
     model.add(Dense(2, activation='softmax'))
