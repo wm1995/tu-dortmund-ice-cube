@@ -104,7 +104,6 @@ def main(
 
     model.add(LSTM(128,
             input_shape=(128, 1),
-            input_length = 128,
             dropout=params['fc_dr'],
             recurrent_dropout=params['conv_dr'],
             kernel_regularizer=regulariser,
