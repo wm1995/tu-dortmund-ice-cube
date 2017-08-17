@@ -15,7 +15,7 @@ from myTools.model_tools.model_saver import save_model
 import tensorflow as tf
 from keras import backend as K
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Reshape
 from keras.layers.recurrent import LSTM
 from keras.utils import to_categorical, Sequence
 from keras.regularizers import l2
