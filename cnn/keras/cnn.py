@@ -229,7 +229,7 @@ if __name__ == "__main__":
     parser.add_argument(
             '-r', '--regularisation', 
             help='sets amount of regularisation on each layer (default = 0.0)',
-            action=float, dest='regularise', 
+            type=float, dest='regularise', 
             default=0.0
         )
 
