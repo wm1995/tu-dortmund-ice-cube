@@ -33,7 +33,8 @@ def main(
             'no_epochs': 1000,
             'steps_per_epoch': 100,
             'dp_prob': 0.5,
-            'batch_norm': False
+            'batch_norm': False,
+            'regularise': 0.0
         },
         no_threads=10,
         verbose=True
@@ -55,7 +56,7 @@ def main(
             steps_per_epoch - the number of batches in each epoch
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
             batch_norm - unused
-            regularise - if true, uses L2 regularisation on the weights for each layer (default = False)
+            regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
     
@@ -92,9 +93,7 @@ def main(
     model = Sequential()
 
     # Set up regulariser
-    regulariser = None
-    if params['regularise']:
-        regulariser = l2(0.01)
+    regulariser = l2(params['regularise'])
 
     model.add(Dense(1024, input_shape=(128,), activation='selu', kernel_regularizer=regulariser))
     model.add(AlphaDropout(params['fc_dr']))
@@ -204,10 +203,10 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-            '-r', '--regularise', 
-            help='uses regularisation on each layer',
-            action='store_true', dest='regularise', 
-            default=False
+            '-r', '--regularisation', 
+            help='sets amount of regularisation on each layer (default = 0.0)',
+            type=float, dest='regularise', 
+            default=0.0
         )
 
     parser.add_argument(
