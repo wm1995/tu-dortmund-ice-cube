@@ -10,7 +10,7 @@ from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
-from myTools.model_tools.model_saver import save_model
+from myTools.model_tools.model_saver import ModelSaver
 
 import tensorflow as tf
 from keras import backend as K
@@ -37,7 +37,8 @@ def main(
         },
         no_threads=10,
         implementation=0,
-        verbose=True
+        verbose=True,
+        cp_interval=100
     ):
     """
     Runs a LSTM recurrent neural network on the waveform data, saving the model to the filestore
@@ -64,6 +65,7 @@ def main(
             1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
             2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
         verbose - dictates the amount of output that keras gives
+        cp_interval - the number of epochs between saving model checkpoints (default = 100)
     
     No returns
 
@@ -90,9 +92,6 @@ def main(
             )
     sess = tf.Session(config=config)
     K.set_session(sess)
-
-    # Prepare TensorBoard
-    tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
 
     # Define model
     model = Sequential()
@@ -156,6 +155,10 @@ def main(
             dp_prob=params['dp_prob']
         )
         
+    # Prepare callbacks
+    tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
+    model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
+
     # Train model
     model.fit_generator(
             train_gen, 
@@ -164,11 +167,8 @@ def main(
             verbose=int(verbose), 
             validation_data=val_gen,
             validation_steps=params['steps_per_epoch'], 
-            callbacks=[tb]
+            callbacks=[tb, model_saver]
         )
-
-    # Save model
-    save_model(model, 'lstm', params, verbose=verbose)
     
     # Evaluate model
     test_preds = model.predict(data.val.waveforms, verbose=int(verbose))
@@ -266,6 +266,13 @@ if __name__ == "__main__":
             default=False
         )
 
+    parser.add_argument(
+            '-k', '--cp-interval', 
+            help='sets number of epochs between the saving of model checkpoints',
+            type=int, dest='cp_interval', 
+            default=100
+        )
+
     # Parse the args
     args = parser.parse_args()
 
@@ -285,5 +292,6 @@ if __name__ == "__main__":
             params=params, 
             no_threads=args.no_threads, 
             verbose=args.verbose, 
-            implementation=args.implementation
+            implementation=args.implementation, 
+            cp_interval=args.cp_interval
         )
