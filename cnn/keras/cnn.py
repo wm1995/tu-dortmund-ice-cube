@@ -36,7 +36,8 @@ def main(
             'regularise': 0.0
         },
         no_threads=10,
-        verbose=True
+        verbose=True,
+        cp_interval=100
     ):
     """
     Runs a convolutional neural network on the waveform data, saving the model to the filestore
@@ -58,6 +59,7 @@ def main(
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
+        cp_interval - the number of epochs between saving model checkpoints (default = 100)
     
     No returns
 
@@ -139,7 +141,7 @@ def main(
 
     # Prepare callbacks
     tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-    model_saver = ModelSaver(model, 'cnn', params, verbose=verbose)
+    model_saver = ModelSaver(model, 'cnn', params, verbose=verbose, period=cp_interval)
 
     # Train model
     model.fit_generator(
@@ -245,6 +247,13 @@ if __name__ == "__main__":
             default=False
         )
 
+    parser.add_argument(
+            '-k', '--cp-interval', 
+            help='sets number of epochs between the saving of model checkpoints',
+            type=int, dest='cp_interval', 
+            default=100
+        )
+
     # Parse the args
     args = parser.parse_args()
 
@@ -260,4 +269,4 @@ if __name__ == "__main__":
         'regularise': args.regularise
     }
 
-    main(params=params, no_threads=args.no_threads, verbose=args.verbose)
+    main(params=params, no_threads=args.no_threads, verbose=args.verbose, cp_interval=cp_interval)

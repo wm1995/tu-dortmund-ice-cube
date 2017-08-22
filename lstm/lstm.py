@@ -37,7 +37,8 @@ def main(
         },
         no_threads=10,
         implementation=0,
-        verbose=True
+        verbose=True,
+        cp_interval=100
     ):
     """
     Runs a LSTM recurrent neural network on the waveform data, saving the model to the filestore
@@ -64,6 +65,7 @@ def main(
             1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
             2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
         verbose - dictates the amount of output that keras gives
+        cp_interval - the number of epochs between saving model checkpoints (default = 100)
     
     No returns
 
@@ -155,7 +157,7 @@ def main(
         
     # Prepare callbacks
     tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-    model_saver = ModelSaver(model, 'lstm', params, verbose=verbose)
+    model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
 
     # Train model
     model.fit_generator(
@@ -264,6 +266,13 @@ if __name__ == "__main__":
             default=False
         )
 
+    parser.add_argument(
+            '-k', '--cp-interval', 
+            help='sets number of epochs between the saving of model checkpoints',
+            type=int, dest='cp_interval', 
+            default=100
+        )
+
     # Parse the args
     args = parser.parse_args()
 
@@ -283,5 +292,6 @@ if __name__ == "__main__":
             params=params, 
             no_threads=args.no_threads, 
             verbose=args.verbose, 
-            implementation=args.implementation
+            implementation=args.implementation, 
+            cp_interval=cp_interval
         )
