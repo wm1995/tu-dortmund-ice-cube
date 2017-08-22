@@ -269,4 +269,4 @@ if __name__ == "__main__":
         'regularise': args.regularise
     }
 
-    main(params=params, no_threads=args.no_threads, verbose=args.verbose, cp_interval=cp_interval)
+    main(params=params, no_threads=args.no_threads, verbose=args.verbose, cp_interval=args.cp_interval)

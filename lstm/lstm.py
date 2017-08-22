@@ -293,5 +293,5 @@ if __name__ == "__main__":
             no_threads=args.no_threads, 
             verbose=args.verbose, 
             implementation=args.implementation, 
-            cp_interval=cp_interval
+            cp_interval=args.cp_interval
         )
