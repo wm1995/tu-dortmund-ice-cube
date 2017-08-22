@@ -45,7 +45,7 @@ class ModelSaver(ModelCheckpoint):
         if self.verbose > 0:
             print("Model saved to " + self.filepath)
 
-    def _write_summary(model_name, params, comment):
+    def _write_summary(self, model_name, params, comment):
         # Update CSV file
         with open(MODEL_DIR + MODEL_SUMMARY, 'a+') as csvfile:
             # Read file to extract headers
