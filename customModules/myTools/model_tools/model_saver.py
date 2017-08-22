@@ -40,7 +40,7 @@ class ModelSaver(ModelCheckpoint):
         verbose - if True, prints when model is saved (default: False)
     """
 
-    def _save_model():
+    def _save_model(self):
         self.model.save(self.filepath, overwrite=True)
         if self.verbose > 0:
             print("Model saved to " + self.filepath)
