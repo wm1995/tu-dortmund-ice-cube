@@ -10,7 +10,7 @@ from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
-from myTools.model_tools.model_saver import save_model
+from myTools.model_tools.model_saver import ModelSaver
 
 import tensorflow as tf
 from keras import backend as K
@@ -91,9 +91,6 @@ def main(
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    # Prepare TensorBoard
-    tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-
     # Define model
     model = Sequential()
 
@@ -156,6 +153,10 @@ def main(
             dp_prob=params['dp_prob']
         )
         
+    # Prepare callbacks
+    tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
+    model_saver = ModelSaver(model, 'lstm', params, verbose=verbose)
+
     # Train model
     model.fit_generator(
             train_gen, 
@@ -164,11 +165,8 @@ def main(
             verbose=int(verbose), 
             validation_data=val_gen,
             validation_steps=params['steps_per_epoch'], 
-            callbacks=[tb]
+            callbacks=[tb, model_saver]
         )
-
-    # Save model
-    save_model(model, 'lstm', params, verbose=verbose)
     
     # Evaluate model
     test_preds = model.predict(data.val.waveforms, verbose=int(verbose))
