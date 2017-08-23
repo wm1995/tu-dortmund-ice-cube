@@ -9,6 +9,7 @@ import os
 RANDOM_SEED = os.environ.get('RANDOM_SEED')
 
 if RANDOM_SEED != None:
+    RANDOM_SEED = int(RANDOM_SEED)
     # Code from https://machinelearningmastery.com/reproducible-results-neural-networks-keras/
     from numpy.random import seed
     seed(RANDOM_SEED)
