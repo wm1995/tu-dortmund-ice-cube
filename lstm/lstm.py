@@ -161,7 +161,7 @@ def main(
 
     if test == False:
         tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-        model_saver = ModelSaver(model, 'cnn', params, verbose=verbose, period=cp_interval)
+        model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
         callbacks = [tb, model_saver]
 
 
