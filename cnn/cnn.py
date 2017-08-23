@@ -37,7 +37,8 @@ def main(
         },
         no_threads=10,
         verbose=True,
-        cp_interval=100
+        cp_interval=100,
+        test=False
     ):
     """
     Runs a convolutional neural network on the waveform data, saving the model to the filestore
@@ -60,6 +61,7 @@ def main(
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
         cp_interval - the number of epochs between saving model checkpoints (default = 100)
+        test - suppresses saving of model and output of logs (for testing new features; default = False)
     
     No returns
 
@@ -155,8 +157,12 @@ def main(
         )
 
     # Prepare callbacks
-    tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-    model_saver = ModelSaver(model, 'cnn', params, verbose=verbose, period=cp_interval)
+    callbacks = None
+
+    if test == False:
+        tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
+        model_saver = ModelSaver(model, 'cnn', params, verbose=verbose, period=cp_interval)
+        callbacks = [tb, model_saver]
 
     # Train model
     model.fit_generator(
@@ -166,7 +172,7 @@ def main(
             verbose=int(verbose), 
             validation_data=val_gen,
             validation_steps=params['steps_per_epoch'], 
-            callbacks=[tb, model_saver]
+            callbacks=callbacks
         )
     
     # Evaluate model
@@ -269,6 +275,13 @@ if __name__ == "__main__":
             default=100
         )
 
+    parser.add_argument(
+            '--test', 
+            help='suppresses saving of model and outputting of logs (use for testing new features)',
+            action='store_true', dest='test', 
+            default=False
+        )
+
     # Parse the args
     args = parser.parse_args()
 
@@ -284,4 +297,10 @@ if __name__ == "__main__":
         'regularise': args.regularise
     }
 
-    main(params=params, no_threads=args.no_threads, verbose=args.verbose, cp_interval=args.cp_interval)
+    main(
+            params=params,
+            no_threads=args.no_threads,
+            verbose=args.verbose,
+            cp_interval=args.cp_interval,
+            test=args.test
+        )
