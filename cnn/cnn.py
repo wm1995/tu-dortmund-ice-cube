@@ -99,17 +99,17 @@ def main(
     # Start with convolutional layers
     model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalisation(axis=2))
+        model.add(BatchNormalization(axis=2))
     model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
     model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalisation(axis=2))
+        model.add(BatchNormalization(axis=2))
     model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
     model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalisation(axis=2))
+        model.add(BatchNormalization(axis=2))
     model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
 
@@ -119,12 +119,12 @@ def main(
     # Fully connected layers
     model.add(Dense(1024, kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalisation(axis=0))
+        model.add(BatchNormalization(axis=0))
     model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(1024, kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalisation(axis=0))
+        model.add(BatchNormalization(axis=0))
     model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(2, activation='softmax'))
