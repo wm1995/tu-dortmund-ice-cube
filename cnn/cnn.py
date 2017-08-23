@@ -15,7 +15,7 @@ from myTools.model_tools.model_saver import ModelSaver
 import tensorflow as tf
 from keras import backend as K
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Conv1D, Flatten, Reshape
+from keras.layers import Dense, Dropout, Activation, Conv1D, Flatten, Reshape, BatchNormalization
 from keras.utils import to_categorical, Sequence
 from keras.regularizers import l2
 from keras.optimizers import Adam
@@ -56,7 +56,7 @@ def main(
             no_epochs - the number of epochs to run for
             steps_per_epoch - the number of batches in each epoch
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
-            batch_norm - if true, use batch norm after each layer (not currently implemented)
+            batch_norm - if true, use batch norm after each layer
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
@@ -99,20 +99,35 @@ def main(
     model.add(Reshape((128, 1), input_shape = (128,)))
 
     # Start with convolutional layers
-    model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
+    model.add(Conv1D(filters=64, kernel_size=5, strides=1, padding='same', kernel_regularizer=regulariser))
+    if params['batch_norm']:
+        model.add(BatchNormalization(axis=2))
+    model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
+    model.add(Conv1D(filters=128, kernel_size=3, strides=1, padding='same', kernel_regularizer=regulariser))
+    if params['batch_norm']:
+        model.add(BatchNormalization(axis=2))
+    model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
-    model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', activation='relu', kernel_regularizer=regulariser))
+    model.add(Conv1D(filters=64, kernel_size=3, strides=1, padding='same', kernel_regularizer=regulariser))
+    if params['batch_norm']:
+        model.add(BatchNormalization(axis=2))
+    model.add(Activation('relu'))
     model.add(Dropout(params['conv_dr']))
 
     # Flatten before fully connected layer
     model.add(Flatten())
 
     # Fully connected layers
-    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
+    model.add(Dense(1024, kernel_regularizer=regulariser))
+    if params['batch_norm']:
+        model.add(BatchNormalization(axis=1))
+    model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
-    model.add(Dense(1024, activation='relu', kernel_regularizer=regulariser))
+    model.add(Dense(1024, kernel_regularizer=regulariser))
+    if params['batch_norm']:
+        model.add(BatchNormalization(axis=1))
+    model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(2, activation='softmax'))
 
@@ -227,7 +242,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
             '-n', '--batch-norm', 
-            help='uses batch normalisation after each layer (currently not implemented)',
+            help='uses batch normalisation after each layer',
             action='store_true', dest='batch_norm', 
             default=False
         )
