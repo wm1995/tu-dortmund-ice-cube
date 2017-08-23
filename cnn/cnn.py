@@ -119,12 +119,12 @@ def main(
     # Fully connected layers
     model.add(Dense(1024, kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalization(axis=0))
+        model.add(BatchNormalization(axis=1))
     model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(1024, kernel_regularizer=regulariser))
     if params['batch_norm']:
-        model.add(BatchNormalization(axis=0))
+        model.add(BatchNormalization(axis=1))
     model.add(Activation('relu'))
     model.add(Dropout(params['fc_dr']))
     model.add(Dense(2, activation='softmax'))
