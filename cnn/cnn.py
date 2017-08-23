@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
             '-n', '--batch-norm', 
-            help='uses batch normalisation after each layer (currently not implemented)',
+            help='uses batch normalisation after each layer',
             action='store_true', dest='batch_norm', 
             default=False
         )
