@@ -3,6 +3,18 @@
 
 from __future__ import division, print_function
 
+import os
+
+# If environment variable RANDOM_SEED is set, set seed
+RANDOM_SEED = os.environ.get('RANDOM_SEED')
+
+if RANDOM_SEED != None:
+    # Code from https://machinelearningmastery.com/reproducible-results-neural-networks-keras/
+    from numpy.random import seed
+    seed(RANDOM_SEED)
+    from tensorflow import set_random_seed
+    set_random_seed(RANDOM_SEED)
+
 import numpy as np
 import argparse
 
