@@ -47,11 +47,9 @@ class WaveformGenerator(Sequence):
 
         '''
         if self.balanced:
+            self.dp_prob = (self.dp_prob - self.FINAL_DP_PROB) / (1 + self.decay * self.epoch) + self.FINAL_DP_PROB
+            self.epoch += 1
+            print("\ndp_prob set to {}".format(self.dp_prob))
             return self.data.next_batch_balanced(batch_size=self.batch_size, dp_prob=self.dp_prob)
         else:
             return self.data.next_batch(batch_size=self.batch_size)
-
-    def on_epoch_end(self):
-        self.epoch += 1
-        print("On Epoch End Called!")
-        self.dp_prob = (self.dp_prob - self.FINAL_DP_PROB) / (1 + self.decay * self.epoch) + self.FINAL_DP_PROB

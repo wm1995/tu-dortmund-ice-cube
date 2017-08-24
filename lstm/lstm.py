@@ -34,7 +34,8 @@ def main(
             'steps_per_epoch': 100,
             'dp_prob': 0.5,
             'batch_norm': False,
-            'regularise': 0.0
+            'regularise': 0.0,
+            'decay': 0.0
         },
         no_threads=10,
         implementation=0,
@@ -61,6 +62,8 @@ def main(
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
             batch_norm - unused
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
+            decay - sets the decay rate for the proportion of double-pulse waveforms used for 
+                    training and validation (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         implementation - sets the implementation used by Keras for the LSTM layers (default = 0)
             0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
@@ -146,14 +149,16 @@ def main(
             data.train, 
             batch_size=params['batch_size'], 
             balanced=True, 
-            dp_prob=params['dp_prob']
+            dp_prob=params['dp_prob'],
+            decay=params['decay']
         )
 
     val_gen = WaveformGenerator(
             data.val, 
             batch_size=params['batch_size'], 
             balanced=True, 
-            dp_prob=params['dp_prob']
+            dp_prob=params['dp_prob'],
+            decay=params['decay']
         )
 
     # Prepare callbacks
@@ -280,6 +285,13 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+            '-d', '--decay', 
+            help='sets decay rate for the proportion of double-pulse waveforms used for training and validation (default = 0.0)',
+            type=float, dest='decay', 
+            default=0.0
+        )
+
+    parser.add_argument(
             '--test', 
             help='suppresses saving of model and outputting of logs (use for testing new features)',
             action='store_true', dest='test', 
@@ -298,7 +310,8 @@ if __name__ == "__main__":
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
         'batch_norm': False,
-        'regularise': args.regularise
+        'regularise': args.regularise,
+        'decay': args.decay
     }
 
     main(
