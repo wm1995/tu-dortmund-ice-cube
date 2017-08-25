@@ -2,8 +2,9 @@
 # Contains definition for Keras generator using balanced generator
 from __future__ import division, print_function
 from keras.utils import Sequence
+from keras.callbacks import Callback
 
-class WaveformGenerator(Sequence):
+class WaveformGenerator(Sequence, Callback):
     '''Object to give the next batch to Keras for training purposes
 
     Inherits from keras.utils.Sequence
@@ -29,7 +30,6 @@ class WaveformGenerator(Sequence):
         self.balanced = balanced
         self.dp_prob = dp_prob
         self.decay = decay
-        self.epoch = 0
 
     def __len__(self):
         '''Number of batches in the sequence
@@ -47,9 +47,11 @@ class WaveformGenerator(Sequence):
 
         '''
         if self.balanced:
-            self.dp_prob = (self.dp_prob - self.FINAL_DP_PROB) / (1 + self.decay * self.epoch) + self.FINAL_DP_PROB
-            self.epoch += 1
-            print("\ndp_prob set to {}".format(self.dp_prob))
             return self.data.next_batch_balanced(batch_size=self.batch_size, dp_prob=self.dp_prob)
         else:
             return self.data.next_batch(batch_size=self.batch_size)
+        
+    def on_epoch_end(self, epoch, logs=None):
+        if self.decay != 0:
+            self.dp_prob = (self.dp_prob - self.FINAL_DP_PROB) / (1 + self.decay * epoch) + self.FINAL_DP_PROB
+            print('\ndp_prob set to {}')

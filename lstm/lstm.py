@@ -162,12 +162,12 @@ def main(
         )
 
     # Prepare callbacks
-    callbacks = None
+    callbacks = [train_gen, val_gen]
 
     if test == False:
         tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
         model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
-        callbacks = [tb, model_saver]
+        callbacks += [tb, model_saver]
 
 
     # Train model
