@@ -54,4 +54,4 @@ class WaveformGenerator(Sequence, Callback):
     def on_epoch_end(self, epoch, logs=None):
         if self.decay != 0:
             self.dp_prob = (self.dp_prob - self.FINAL_DP_PROB) / (1 + self.decay * epoch) + self.FINAL_DP_PROB
-            print('\ndp_prob set to {}')
+            print('\ndp_prob set to {}'.format(self.dp_prob))
