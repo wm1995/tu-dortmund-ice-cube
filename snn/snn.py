@@ -8,7 +8,7 @@ import argparse
 
 from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
-from myTools.metrics.keras import precision, recall, f1
+from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver
 
@@ -34,7 +34,8 @@ def main(
             'steps_per_epoch': 100,
             'dp_prob': 0.5,
             'batch_norm': False,
-            'regularise': 0.0
+            'regularise': 0.0,
+            'decay': 0.0
         },
         no_threads=10,
         verbose=True,
@@ -59,6 +60,8 @@ def main(
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
             batch_norm - unused
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
+            decay - sets the decay rate for the proportion of double-pulse waveforms used for 
+                    training and validation (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
         verbose - dictates the amount of output that keras gives
         cp_interval - the number of epochs between saving model checkpoints (default = 100)
@@ -113,7 +116,7 @@ def main(
     model.compile(
             optimizer=optimiser, 
             loss='categorical_crossentropy', 
-            metrics=['accuracy', precision, recall, f1]
+            metrics=['accuracy', precision, recall, f1, class_balance]
         )
 
     # Create generators for training, validation
@@ -121,23 +124,25 @@ def main(
             data.train, 
             batch_size=params['batch_size'], 
             balanced=True, 
-            dp_prob=params['dp_prob']
+            dp_prob=params['dp_prob'],
+            decay=params['decay']
         )
 
     val_gen = WaveformGenerator(
             data.val, 
             batch_size=params['batch_size'], 
             balanced=True, 
-            dp_prob=params['dp_prob']
+            dp_prob=params['dp_prob'],
+            decay=params['decay']
         )
 
     # Prepare callbacks
-    callbacks = None
+    callbacks = [train_gen, val_gen]
 
     if test == False:
         tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
         model_saver = ModelSaver(model, 'snn', params, verbose=verbose, period=cp_interval)
-        callbacks = [tb, model_saver]
+        callbacks += [tb, model_saver]
         
     # Train model
     model.fit_generator(
@@ -237,6 +242,13 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
+            '-d', '--decay', 
+            help='sets decay rate for the proportion of double-pulse waveforms used for training and validation (default = 0.0)',
+            type=float, dest='decay', 
+            default=0.0
+        )
+
+    parser.add_argument(
             '--test', 
             help='suppresses saving of model and outputting of logs (use for testing new features)',
             action='store_true', dest='test', 
@@ -255,7 +267,8 @@ if __name__ == "__main__":
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
         'batch_norm': False,
-        'regularise': args.regularise
+        'regularise': args.regularise,
+        'decay': args.decay
     }
 
     main(

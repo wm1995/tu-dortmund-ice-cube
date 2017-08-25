@@ -48,3 +48,12 @@ def f1(y_true, y_pred):
     prc = precision(y_true, y_pred)
     rcl = recall(y_true, y_pred)
     return 2*((prc*rcl)/(prc+rcl))
+
+def class_balance(y_true, y_pred):
+    """Class balance
+
+    Computes the batchwise balance between the two classes.
+
+    For use on tf.Tensor objects.
+    """
+    return K.mean(y_true[:, 1])
