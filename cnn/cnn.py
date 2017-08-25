@@ -8,7 +8,7 @@ import argparse
 
 from myTools.data_loader import load_data
 from myTools.WaveformGenerator import WaveformGenerator
-from myTools.metrics.keras import precision, recall, f1
+from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver
 
@@ -141,7 +141,7 @@ def main(
     model.compile(
             optimizer=optimiser, 
             loss='categorical_crossentropy', 
-            metrics=['accuracy', precision, recall, f1]
+            metrics=['accuracy', precision, recall, f1, class_balance]
         )
 
     # Create generators for training, validation
