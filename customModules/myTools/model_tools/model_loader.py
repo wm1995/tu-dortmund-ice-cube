@@ -1,24 +1,7 @@
-#!/usr/bin/env python
-# Script to load a pretrained and saved model
+'''
+A module that loads a model from the model store into memory
 
-# Do we want to start saving metadata about how each model was trained? Could be wise
-#
-
-# What basic structure do we want?
-
-# Options:
-#  - load a particular model
-#  - read the metadata of a model
-#  - load data into memory, train on data (do by default)
-#  - Spit out parameters about that model
-#  - list all models
-
-# Can generate a dictionary with all the pertinent parameters
-# Better to generate a csv?
-# Maybe better yet to have one master csv file with info about each
-# What are the pertinent parameters?
-# Batch size, dropout rate (both of them), batches per epoch, number of epochs, learning rate
-# Accuracy, precision, recall, f1 score, learning rate, commentary
+'''
 from __future__ import print_function
 
 import argparse
@@ -32,7 +15,6 @@ from myTools.data_loader import load_data
 from myTools.metrics.keras import precision, recall, f1
 from myTools.metrics.sklearn import print_metric_results
 
-# Following code based on https://docs.python.org/2.7/library/argparse.html
 parser = argparse.ArgumentParser(description='Load a pretrained Keras model')
 parser.add_argument('-m', '--model-file', dest='filename', nargs='?', help='hdf5 file to be loaded')
 parser.add_argument('-d', dest='load_data', action='store_true', help='load default dataset into data')
