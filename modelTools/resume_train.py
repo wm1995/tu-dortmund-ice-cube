@@ -101,7 +101,7 @@ def main(
     with open(MODEL_DIR + MODEL_SUMMARY) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            if params['model_name'] == model_name:
+            if row['model_name'] == model_name:
                 old_params = row
                 break
 
