@@ -6,7 +6,7 @@
 #  - list all models
 from __future__ import division, print_function
 
-import numpy as np
+import csv
 import argparse
 
 from myTools.data_loader import load_data
