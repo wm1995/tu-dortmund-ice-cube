@@ -190,7 +190,8 @@ if __name__ == "__main__":
     parser.add_argument(
             '-e', '--no-epochs', 
             help='sets the total number of epochs (i.e. curr epoch + how many left to train for)',
-            type=int, dest='no_epochs'
+            type=int, dest='no_epochs',
+            required=True
         )
 
     parser.add_argument(
@@ -265,7 +266,6 @@ if __name__ == "__main__":
         'no_epochs': args.no_epochs,
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
-        'regularise': args.regularise,
         'decay': args.decay
     }
 
