@@ -107,6 +107,8 @@ def main(
 
     # Compare parameters
     for key in old_params:
+        if (key == 'model_name') | (key == 'comment'):
+            continue
         try:
             # If key doesn't exist, a KeyError will be thrown
             if params[key] == None:
@@ -176,12 +178,13 @@ if __name__ == "__main__":
         )
     
     # Add arguments
-    parser.add_argument('filepath', dest='filepath', nargs='?', help='path to hdf5 file to be loaded')
+    parser.add_argument('filepath', nargs='?', help='path to hdf5 file to be loaded')
 
     parser.add_argument(
             '-c', '--curr-epoch', 
             help='the current number of epochs',
-            type=int, dest='curr_epoch'
+            type=int, dest='curr_epoch',
+            required=True
         )
 
     parser.add_argument(
