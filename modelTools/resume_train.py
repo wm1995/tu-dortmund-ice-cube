@@ -178,7 +178,7 @@ if __name__ == "__main__":
         )
     
     # Add arguments
-    parser.add_argument('filepath', nargs='?', help='path to hdf5 file to be loaded')
+    parser.add_argument('filepath', nargs=1, help='path to hdf5 file to be loaded')
 
     parser.add_argument(
             '-c', '--curr-epoch', 
