@@ -285,7 +285,7 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-            '-d', '--decay', 
+            '-D', '--decay', 
             help='sets decay rate for the proportion of double-pulse waveforms used for training and validation (default = 0.0)',
             type=float, dest='decay', 
             default=0.0
