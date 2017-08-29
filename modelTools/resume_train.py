@@ -178,7 +178,12 @@ if __name__ == "__main__":
         )
     
     # Add arguments
-    parser.add_argument('filepath', nargs=1, help='path to hdf5 file to be loaded')
+    parser.add_argument(
+            '-m', '--model-path', 
+            help='path to the Keras HDF5 model file to be loaded',
+            type=str, dest='filepath',
+            required=True
+        )
 
     parser.add_argument(
             '-c', '--curr-epoch', 
