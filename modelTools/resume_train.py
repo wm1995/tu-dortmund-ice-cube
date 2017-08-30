@@ -1,11 +1,6 @@
-# Options:
-#  - load a particular model
-#  - read the metadata of a model
-#  - load data into memory, train on data (do by default)
-#  - Spit out parameters about that model
-#  - list all models
 from __future__ import division, print_function
 
+from ast import literal_eval
 import csv
 import argparse
 
@@ -107,15 +102,15 @@ def main(
 
     # Compare parameters
     for key in old_params:
-        if (key == 'model_name') | (key == 'comment'):
+        if (key == 'model_name') or (key == 'comments'):
             continue
         try:
             # If key doesn't exist, a KeyError will be thrown
             if params[key] == None:
-                params[key] = old_params[key]
+                params[key] = literal_eval(old_params[key])
         except KeyError:
             # Key doesn't exist - populate with value from old params index
-            params[key] = old_params[key]
+            params[key] = literal_eval(old_params[key])
 
     # Read in data
     if data == None:
@@ -154,7 +149,7 @@ def main(
     model.fit_generator(
             train_gen, 
             steps_per_epoch=params['steps_per_epoch'], 
-            epochs=params['no_epochs'] - curr_epoch, 
+            epochs=params['no_epochs'],
             verbose=int(verbose), 
             validation_data=val_gen,
             validation_steps=params['steps_per_epoch'], 
