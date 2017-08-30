@@ -75,6 +75,15 @@ def main(
     sess = tf.Session(config=config)
     K.set_session(sess)
 
+    # Read initial parameters
+    # Code adapted from https://docs.python.org/2/library/csv.html
+    with open(MODEL_DIR + MODEL_SUMMARY) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row['model_name'] == model_name:
+                old_params = row
+                break
+
     # Compare parameters
     for key in old_params:
         if (key == 'model_name') or (key == 'comments'):
@@ -103,15 +112,6 @@ def main(
             loss='categorical_crossentropy', 
             metrics=['accuracy', precision, recall, f1, class_balance]
         )
-
-    # Read initial parameters
-    # Code adapted from https://docs.python.org/2/library/csv.html
-    with open(MODEL_DIR + MODEL_SUMMARY) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            if row['model_name'] == model_name:
-                old_params = row
-                break
 
     # Read in data
     if data == None:
