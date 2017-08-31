@@ -2,53 +2,46 @@
 A module that loads a model from the model store into memory
 
 '''
-from __future__ import print_function
+from keras.models import load_model as _load_model
+from myTools.metrics.keras import precision, recall, f1, class_balance
 
-import argparse
-
-import tensorflow as tf
-
-from keras.models import load_model
-from keras import backend as K
-
-from myTools.data_loader import load_data
-from myTools.metrics.keras import precision, recall, f1
-from myTools.metrics.sklearn import print_metric_results
-
-parser = argparse.ArgumentParser(description='Load a pretrained Keras model')
-parser.add_argument('-m', '--model-file', dest='filename', nargs='?', help='hdf5 file to be loaded')
-parser.add_argument('-d', dest='load_data', action='store_true', help='load default dataset into data')
-args = parser.parse_args()
-
-# If data is requested, load data
-data = None
-if args.load_data:
-    data = load_data()
-
-# To load model, need to specify the custom objects we loaded
-custom_obj_dict = {
+# Constants
+# Need to specify the custom objects used in model compilation
+CUSTOM_OBJ_DICT = {
         'precision': precision,
         'recall': recall,
-        'f1': f1
+        'f1': f1,
+        'class_balance': class_balance
     }
 
-# Set up CPU, GPU options
-config = tf.ConfigProto(
-        intra_op_parallelism_threads=10, 
-        inter_op_parallelism_threads=10,
-        allow_soft_placement=True, 
-        device_count = {'CPU': 1, 'GPU': 1}, 
-        gpu_options = tf.GPUOptions(allow_growth=True)
-    )
-sess = tf.Session(config=config)
-K.set_session(sess)
+def load_model(filepath):
+    '''
+    Loads and compiles the specified Keras model.
 
-model = load_model('/fhgfs/users/wmartin/models/' + args.filename, custom_objects=custom_obj_dict)
+    NB Model must have been pre-compiled with an optimiser
 
-testPreds = None
-if args.load_data:
-    testPreds = model.predict(data.val.waveforms, verbose=1)
-    print()
-    print_metric_results(data.val.labels, testPreds, data.val.weights, data.val.ids, th=0.5)
-    print_metric_results(data.val.labels, testPreds, data.val.weights, data.val.ids, th=0.9)
+    Arguments:
+        filepath - the filepath of the model
+
+    Returns:
+        model - a keras.models.Sequential object
+
+    '''
+    return _load_model(filepath, custom_objects=CUSTOM_OBJ_DICT)
+
+def load_uncompiled_model(filepath):
+    '''
+    Loads the specified Keras model without compiling it.
+
+    NB Model can be either compiled or uncompiled.
+
+    Arguments:
+        filepath - the filepath of the model
+
+    Returns:
+        model - a keras.models.Sequential object
+
+    '''
+    return _load_model(filepath, compile=False)
+
 

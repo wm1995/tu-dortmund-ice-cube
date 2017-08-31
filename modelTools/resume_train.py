@@ -1,74 +1,52 @@
-#!/usr/bin/env python
-# LSTM
-
 from __future__ import division, print_function
 
-import numpy as np
+from ast import literal_eval
+import csv
 import argparse
 
-from myTools.waveform_tools.data_loader import load_data
-from myTools.waveform_tools.waveform_generator import WaveformGenerator
+from myTools.data_loader import load_data
+from myTools.WaveformGenerator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
-from myTools.model_tools.model_saver import ModelSaver
+from myTools.model_tools.model_saver import ModelSaver, MODEL_DIR, MODEL_SUMMARY
+from myTools.model_tools.model_loader import load_model, load_uncompiled_model
 
 import tensorflow as tf
 from keras import backend as K
-from keras.models import Sequential
-from keras.layers import Dense, Reshape
-from keras.layers.recurrent import LSTM
-from keras.utils import to_categorical, Sequence
-from keras.regularizers import l2
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 
-
 def main(
+        filepath,
+        curr_epoch,
+        params,
         data=None,
-        params={
-            'lr': 0.001,
-            'conv_dr': 0.2,
-            'fc_dr': 0.2,
-            'batch_size': 128,
-            'no_epochs': 1000,
-            'steps_per_epoch': 100,
-            'dp_prob': 0.5,
-            'batch_norm': False,
-            'regularise': 0.0,
-            'decay': 0.0
-        },
         no_threads=10,
-        implementation=0,
         verbose=True,
         cp_interval=100,
         test=False
     ):
     """
-    Runs a LSTM recurrent neural network on the waveform data, saving the model to the filestore
+    Resumes training for the specified Keras model
+
     Requires a directory called 'logs' in the same folder for the TensorBoard visualisation
-    
-    The current neural network structure is:
-        lstm > lstm > lstm > softmax
 
     Arguments:
+        filepath - the path to the specified HDF5 file containing the Keras model (must be in the model store)
+        curr_epoch - the number of the last completed epoch (1-indexed)
         data - the Datasets object to run on, if None then loads data (default = None)
         params - a dictionary object containing the following parameters
             lr - the learning rate of the Adam optimiser (default = 0.001)
-            conv_dr - the dropout rate for the recurrent state (default = 0.2)
-                      (misleadingly named to maintain compatibility with other tools)
-            fc_dr - the dropout rate for the alpha dropout layers (default = 0.2)
+            conv_dr - the dropout rate after the convolutional layers (default = 0.7)
+            fc_dr - the dropout rate after the fully-connected layers (default = 0.5)
             no_epochs - the number of epochs to run for
             steps_per_epoch - the number of batches in each epoch
             dp_prob - the proportion of double pulse waveforms shown at train time (default = 0.5)
-            batch_norm - unused
+            batch_norm - if true, use batch norm after each layer
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
             decay - sets the decay rate for the proportion of double-pulse waveforms used for 
                     training and validation (default = 0.0)
         no_threads - number of threads to use (default is 10, use -1 to set no limit)
-        implementation - sets the implementation used by Keras for the LSTM layers (default = 0)
-            0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
-            1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
-            2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
         verbose - dictates the amount of output that keras gives
         cp_interval - the number of epochs between saving model checkpoints (default = 100)
         test - suppresses saving of model and output of logs (for testing new features; default = False)
@@ -76,9 +54,7 @@ def main(
     No returns
 
     """
-    # Read in data
-    if data == None:
-        data = load_data(verbose=verbose)
+    model_name = filepath.split('/')[-1]
 
     # Set up CPU, GPU options
     config = None
@@ -99,50 +75,46 @@ def main(
     sess = tf.Session(config=config)
     K.set_session(sess)
 
-    # Define model
-    model = Sequential()
+    # Get model
+    if params['lr'] != None:
+        # Load model
+        model = load_uncompiled_model(filepath)
 
-    # Set up regulariser
-    regulariser = l2(params['regularise'])
+        optimiser = Adam(params['lr'])
 
-    # Reshape input to fit with LSTM
-    model.add(Reshape((128, 1), input_shape = (128,)))
+        # Create model
+        model.compile(
+                optimizer=optimiser, 
+                loss='categorical_crossentropy', 
+                metrics=['accuracy', precision, recall, f1, class_balance]
+            )
+    else:
+        model = load_model(filepath)
 
-    # Define model
-    model.add(LSTM(128,
-            dropout=params['fc_dr'],
-            recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser,
-            unroll=True,
-            return_sequences=True,
-            implementation=implementation
-        ))
-    model.add(LSTM(128,
-            dropout=params['fc_dr'],
-            recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser,
-            unroll=True,
-            return_sequences=True,
-            implementation=implementation
-        ))
-    model.add(LSTM(128,
-            dropout=params['fc_dr'],
-            recurrent_dropout=params['conv_dr'],
-            kernel_regularizer=regulariser,
-            unroll=True,
-            implementation=implementation
-        ))
-    model.add(Dense(2, activation='softmax'))
+    # Read initial parameters
+    # Code adapted from https://docs.python.org/2/library/csv.html
+    with open(MODEL_DIR + MODEL_SUMMARY) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row['model_name'] == model_name:
+                old_params = row
+                break
 
-    # Set-up optimiser
-    optimiser = Adam(lr=params['lr'])
+    # Compare parameters
+    for key in old_params:
+        if (key == 'model_name') or (key == 'comments'):
+            continue
+        try:
+            # If key doesn't exist, a KeyError will be thrown
+            if params[key] == None:
+                params[key] = literal_eval(old_params[key])
+        except KeyError:
+            # Key doesn't exist - populate with value from old params index
+            params[key] = literal_eval(old_params[key])
 
-    # Create model
-    model.compile(
-            optimizer=optimiser, 
-            loss='categorical_crossentropy', 
-            metrics=['accuracy', precision, recall, f1, class_balance]
-        )
+    # Read in data
+    if data == None:
+        data = load_data(verbose=verbose)
 
     # Create generators for training, validation
     train_gen = WaveformGenerator(
@@ -166,19 +138,23 @@ def main(
 
     if test == False:
         tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-        model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
+        model_saver = ModelSaver(
+                model, 'retrain', params, 
+                comment="Retrained from {}".format(model_name),
+                verbose=verbose, period=cp_interval
+            )
         callbacks += [tb, model_saver]
-
 
     # Train model
     model.fit_generator(
             train_gen, 
             steps_per_epoch=params['steps_per_epoch'], 
-            epochs=params['no_epochs'], 
+            epochs=params['no_epochs'],
             verbose=int(verbose), 
             validation_data=val_gen,
             validation_steps=params['steps_per_epoch'], 
-            callbacks=callbacks
+            callbacks=callbacks,
+            initial_epoch=curr_epoch
         )
     
     # Evaluate model
@@ -192,75 +168,58 @@ if __name__ == "__main__":
     # Initialise the arg parser
     parser = argparse.ArgumentParser(
             description="""
-            Runs a LSTM recurrent neural network on the waveform data.
+            Resumes training for a Keras model
             """
         )
     
     # Add arguments
     parser.add_argument(
+            '-m', '--model-path', 
+            help='path to the Keras HDF5 model file to be loaded',
+            type=str, dest='filepath',
+            required=True
+        )
+
+    parser.add_argument(
+            '-c', '--curr-epoch', 
+            help='the current number of epochs',
+            type=int, dest='curr_epoch',
+            required=True
+        )
+
+    parser.add_argument(
+            '-e', '--no-epochs', 
+            help='sets the total number of epochs (i.e. curr epoch + how many left to train for)',
+            type=int, dest='no_epochs',
+            required=True
+        )
+
+    parser.add_argument(
             '-l', '--learn-rate', 
-            help='sets the learning rate for the Adam optimiser',
+            help='sets the learning rate for the Adam optimiser - if None, uses previous learning rate (default: None)',
             type=float, dest='lr', 
-            default=1e-3
-        )
-
-    parser.add_argument(
-            '-d', '--dropout', 
-            help='sets the dropout rate for the input layers (default 0.2)',
-            type=float, dest='fc_dr', 
-            default=0.2
-        )
-
-    parser.add_argument(
-            '-x', '--recurrent-dropout', 
-            help='sets the dropout rate for the recurrent state (default 0.2)',
-            type=float, dest='conv_dr', 
-            default=0.2
+            default=None
         )
 
     parser.add_argument(
             '-b', '--batch-size', 
             help='sets the batch size',
             type=int, dest='batch_size', 
-            default=128
-        )
-
-    parser.add_argument(
-            '-e', '--no-epochs', 
-            help='sets the number of epochs',
-            type=int, dest='no_epochs', 
-            default=1e3
+            default=None
         )
 
     parser.add_argument(
             '-s', '--steps-per-epoch', 
             help='sets the number of batches per epoch',
             type=int, dest='steps_per_epoch', 
-            default=100
+            default=None
         )
 
     parser.add_argument(
             '-p', '--double-pulse-prob', 
             help='sets proportion of double pulse waveforms used at train time (default = 0.5)',
             type=float, dest='dp_prob', 
-            default=0.5
-        )
-
-    parser.add_argument(
-            '-r', '--regularisation', 
-            help='sets amount of regularisation on each layer (default = 0.0)',
-            type=float, dest='regularise', 
-            default=0.0
-        )
-
-    parser.add_argument(
-            '-i', '--implementation', 
-            help='''sets the implementation used by Keras for the LSTM layers (default = 0)
-            \t0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
-            \t1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
-            \t2 - Combines different gates in LSTM into one matrix (more efficient on GPU)''',
-            type=int, dest='implementation',
-            default=0 
+            default=None
         )
 
     parser.add_argument(
@@ -285,10 +244,10 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-            '-D', '--decay', 
+            '-d', '--decay', 
             help='sets decay rate for the proportion of double-pulse waveforms used for training and validation (default = 0.0)',
             type=float, dest='decay', 
-            default=0.0
+            default=None
         )
 
     parser.add_argument(
@@ -303,22 +262,19 @@ if __name__ == "__main__":
 
     params = {
         'lr': args.lr,
-        'conv_dr': args.conv_dr,
-        'fc_dr': args.fc_dr,
         'batch_size': args.batch_size,
         'no_epochs': args.no_epochs,
         'steps_per_epoch': args.steps_per_epoch,
         'dp_prob': args.dp_prob,
-        'batch_norm': False,
-        'regularise': args.regularise,
         'decay': args.decay
     }
 
     main(
-            params=params, 
-            no_threads=args.no_threads, 
-            verbose=args.verbose, 
-            implementation=args.implementation, 
+            args.filepath,
+            args.curr_epoch,
+            params=params,
+            no_threads=args.no_threads,
+            verbose=args.verbose,
             cp_interval=args.cp_interval,
             test=args.test
         )
