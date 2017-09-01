@@ -3,6 +3,10 @@
 
 from __future__ import division, print_function
 
+from myTools.seed_setter import check_seed_set
+
+check_seed_set()
+
 import numpy as np
 import argparse
 
