@@ -1,3 +1,7 @@
+'''
+A module that loads a model from the model store into memory
+
+'''
 from keras.models import load_model as _load_model
 from myTools.metrics.keras import precision, recall, f1, class_balance
 

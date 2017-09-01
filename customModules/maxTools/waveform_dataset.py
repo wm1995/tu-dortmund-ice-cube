@@ -51,7 +51,8 @@ class DataSet(object):
         self._epochs_completed = 0
         self._index_in_epoch = 0
 
-        # New stuff - to only recalculate indices after shuffling
+        # Code added by William
+        # To only recalculate indices after shuffling
         self._shuffled = True
         self._dp_indices = None
         self._other_indices = None
@@ -107,7 +108,7 @@ class DataSet(object):
         self._waveforms -= values
 
     def shuffle(self):
-        self._shuffled = True
+        self._shuffled = True   # Set shuffled flag
         perm = np.arange(self._num_examples)
         np.random.shuffle(perm)
         self._waveforms = self._waveforms[perm]
@@ -139,33 +140,28 @@ class DataSet(object):
 
         return self._waveforms[start:end], self._labels[start:end]
 
-    # def sort_by_label(self):
-    #     '''
-    #     Sorts the dataset (for use with the balanced batch method)
-    #     '''
-    # 
-    # The above is for an alternative form of balanced batch which keeps track of the epochs
-    # To implement this, perhaps have private variables _sorted, _dpIndex, _dpEpochs, _otherEpochs
-    # Scrap above proposed method
-    # Reimplement next_batch_balanced to:
-    #   - sort by class if !_sorted, set _dpIndex = first index of dp waveform
-    #   - use binomial distrib to generate dpBatchSize, otherBatchSize
-    #   - proceed as before but with two separate shuffles, one for dp and the other for other
-    #   - combine both and shuffle final result
-    # Implement shuffleDP, shuffleOther (assert _sorted)
-    # Reimplement shuffle (set _sorted = False)
-    # Reimplement next_batch (set _sorted = False, shuffle)
-
-
     def next_batch_balanced(self, batch_size, dp_prob=0.5):
         '''
         Returns the next `batch_size` examples from this dataset, 
         balanced to have a custom distribution between classes.
         (Allows for undersampling of other waveforms)
 
-        N.B. epoch becomes meaningless using this method
-        '''
+        The number of double pulse waveforms is selected by drawing from
+        a binomial distribution of events. 
 
+        N.B. epoch becomes meaningless using this method
+
+        Arguments
+            batch_size - the size of the batch returned
+            dp_prob - the expected proportion of double pulse waveforms
+                      in the batch (default: 0.5)
+
+        Returns
+            waveforms - an array with batch_size number of waveforms
+            labels - the corresponding labels for the waveforms
+
+        '''
+        # Method based on next_batch
         # Calculate double pulse and other batch sizes
         dp_batch_size = np.random.binomial(batch_size, dp_prob)
         other_batch_size = batch_size - dp_batch_size

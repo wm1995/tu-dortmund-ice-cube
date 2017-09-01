@@ -68,22 +68,5 @@ def weighted_unique_confusion_matrix(y_true, y_pred, weights, ids):
     CM = coo_matrix((weights, (y_true_evt, y_pred_evt)),
                     shape=(n_labels, n_labels)
                     ).toarray()
-
-    # This is old:
-    # def get_weighted_unique_CM_entry(row, column):
-    #     mask = np.logical_and(
-    #         y_true == row,
-    #         y_pred == column)
-
-    #     masked_ids = ids[mask]
-    #     u_val, u_ind = np.unique(masked_ids, return_index=True)
-
-    #     CM_entry = np.sum(weights[u_ind])
-    #     return CM_entry
-
-    # CM = np.zeros((n_labels, n_labels))
-    # for irow in range(n_labels):
-    #     for icol in range(n_labels):
-    #         CM[irow, icol] = get_weighted_unique_CM_entry(irow, icol)
-
+    
     return CM
