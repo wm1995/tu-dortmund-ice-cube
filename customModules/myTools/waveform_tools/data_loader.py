@@ -89,7 +89,7 @@ def load_eval_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True)
     '''
     # Selected datasets
     datasets = [
-        ('11538', ['DP', 'NC'], 3638),  # Tau neutrinos
+        ('11538', ['DP', 'NDP', 'NC'], 3638),  # Tau neutrinos
         ('12034', ['CC', 'NC'], 8637),  # Electron neutrinos
         ('11069', ['NC', 'CC'], 7287),   # Muon neutrinos
         ('11057', ['AM'], 74890)        # Atmospheric muons
@@ -103,12 +103,13 @@ def load_eval_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True)
             combined=True, 
             train_ratio=train_ratio, 
             test_ratio=test_ratio,
+            load_eval_data=True,
             verbose=verbose
         )
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        mask = (data.train.labels[:, 0] == 1) or (data.train.labels[:, 1] == 1)
+        mask = np.logical_or((data.train.labels[:, 0] == 1), (data.train.labels[:, 1] == 1))
         rescaler = StandardScaler(copy=False)
         rescaler.fit(data.train.waveforms[mask])
         rescaler.transform(data.train.waveforms)
