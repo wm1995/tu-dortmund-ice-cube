@@ -2,6 +2,7 @@
 Module for generating plots to assess model performance
 
 '''
+from __future__ import absolute_import
 import numpy as np
 
 import matplotlib
@@ -43,6 +44,10 @@ def purity_efficiency_plot(y_true, y_pred, inset=True, savepath=None):
         # Set limits for inset plot
         axins.set_xlim(0.9, 1)
         axins.set_ylim(0.9, 1)
+	
+	# Set ticks for inset plot
+	axins.set_xticks([0.9, 0.95, 1.0])
+        axins.set_yticks([0.9, 0.95, 1.0])
 
         # Mark inset box
         mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
