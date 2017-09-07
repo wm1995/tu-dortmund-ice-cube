@@ -10,6 +10,7 @@ check_seed_set()
 import numpy as np
 import argparse
 
+from myTools.train_tools.resource_limiter import limit_resources
 from myTools.waveform_tools.data_loader import load_data
 from myTools.waveform_tools.waveform_generator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1, class_balance
@@ -65,7 +66,7 @@ def main(
             regularise - sets the amount of L2 regularisation for each layer (default = 0.0)
             decay - sets the decay rate for the proportion of double-pulse waveforms used for 
                     training and validation (default = 0.0)
-        no_threads - number of threads to use (default is 10, use -1 to set no limit)
+        no_threads - number of threads to use (default is 10, use 0 to set no limit)
         verbose - dictates the amount of output that keras gives
         cp_interval - the number of epochs between saving model checkpoints (default = 100)
         test - suppresses saving of model and output of logs (for testing new features; default = False)
@@ -77,24 +78,7 @@ def main(
     if data == None:
         data = load_data(verbose=verbose)
 
-    # Set up CPU, GPU options
-    config = None
-    if no_threads == -1:
-        config = tf.ConfigProto(
-                allow_soft_placement=True, 
-                device_count = {'CPU': 1, 'GPU': 1}, 
-                gpu_options = tf.GPUOptions(allow_growth = True)
-            )
-    else:
-        config = tf.ConfigProto(
-                intra_op_parallelism_threads=no_threads, 
-                inter_op_parallelism_threads=no_threads,
-                allow_soft_placement=True, 
-                device_count = {'CPU': 1, 'GPU': 1}, 
-                gpu_options = tf.GPUOptions(allow_growth = True)
-            )
-    sess = tf.Session(config=config)
-    K.set_session(sess)
+    resource_limiter(no_threads=no_threads)
 
     # Define model
     model = Sequential()
@@ -265,7 +249,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
             '-t', '--no-threads', 
-            help='sets limit on the number of threads to be used (default = 10, if no limit set to -1)',
+            help='sets limit on the number of threads to be used (default = 10, if no limit set to 0)',
             type=int, dest='no_threads', 
             default=10
         )
