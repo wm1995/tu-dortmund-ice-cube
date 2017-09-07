@@ -77,16 +77,16 @@ def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, s
     for i in range(len(inds)):
         counts[label_mask[i, :], inds[i]] += weights[i]
 
-    labels = {'0':'Cascade-like background',
-              '1':'Double-pulse events',
-              '2':'Other nu_tau cc events',
-              '3':'nu_mu cc events',
-              '4':'Atmospheric muons'}
+    labels = {'0':r'Cascade-like background',
+              '1':r'Double-pulse events',
+              '2':r'Other $\nu_\tau$ CC events',
+              '3':r'$\nu_\mu$ CC events',
+              '4':r'Atmospheric muons'}
 
     if combine_nu_tau_cc:
-        labels['1'] ='nu_tau cc events'
+        labels['1'] =r'$\nu_\tau$ CC events'
 
-    bin_range = np.arange(0, 1 + 1e-8, stepsize)
+    bin_range = np.arange(0, 1 + 1e-8, bin_size)
 
     fig, ax = plt.subplots()
 
@@ -111,7 +111,7 @@ def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, s
     ax.set_ylabel("Waveforms per year")
     ax.set_xlim(0, 1)
     ax.set_yscale('log')
-    ax.legend(bbox_to_anchor=(0.5, 1), loc="lower center", ncol=2, frameon=False)
+    ax.legend(bbox_to_anchor=(0.5 - x_offset, 1), loc="lower center", ncol=2, frameon=False)
 
     if savepath == None:
         plt.show()
