@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import numpy as np
 import argparse
 
-from myTools.data_loader import load_data, load_eval_data
+from myTools.waveform_tools.data_loader import load_data, load_eval_data
 from myTools.model_tools.model_loader import load_model
 from myTools.metrics.sklearn import print_metric_results
 from myTools.metrics.plots import purity_efficiency_plot, rate_plot
@@ -37,17 +37,18 @@ def main(
     sess = tf.Session(config=config)
     K.set_session(sess)
 
+    # Read in data
+    if data == None:
+        data = load_eval_data(verbose=verbose)
+
+
     for model_path in model_list:
         # Load model
         model = load_model(model_path)
 
         # Get the name of the model
-        model_name = filepath.split('/')[-1]
+        model_name = model_path.split('/')[-1]
         model_name = model_name[:-3]          # Strip off extension
-
-        # Read in data
-        if data == None:
-            data = load_eval_data(verbose=verbose)
     
         secs_per_year = 86400 * 365.25
 
@@ -60,19 +61,19 @@ def main(
             data_ratio = 0.13
 
         # Rescale weights
-        dataset.weights *= secs_per_year / data_ratio
+        weights = dataset.weights * secs_per_year / data_ratio
             
         test_preds = model.predict(dataset.waveforms, verbose=int(verbose))
 
         training_mask = np.logical_or(dataset.labels[:, 0] == 1, dataset.labels[:, 1] == 1)
 
         print()
-        print_metric_results(dataset.labels[training_mask], test_preds[training_mask], dataset.weights, dataset.ids, th=0.5)
-        print_metric_results(dataset.labels[training_mask], test_preds[training_mask], dataset.weights, dataset.ids, th=0.9)
+        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.5)
+        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.9)
 
-        purity_efficiency_plot(dataset.labels[training_mask], test_preds[training_mask], savepath="plots/" + model_name + "_pe_plot.pdf")
-        rate_plot(dataset.labels[training_mask], test_preds[training_mask], dataset.weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
-        rate_plot(dataset.labels, test_preds, dataset.weights, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_rate_plot.pdf")
+        purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], savepath="plots/" + model_name + "_pe_plot.pdf")
+        rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
+        rate_plot(dataset.labels, test_preds, weights, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_rate_plot.pdf")
 
 if __name__ == "__main__":
     # Initialise the arg parser
@@ -83,7 +84,7 @@ if __name__ == "__main__":
         )
     
     # Add mutually exclusive val/test data group
-    arg_group = add_mutually_exclusive_group(required=True)
+    arg_group = parser.add_mutually_exclusive_group()
 
     arg_group.add_argument(
             '--val', 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
             'model_filepaths', nargs='+', 
             help='paths to the Keras HDF5 model files to be evaluated',
-            type=str, required=True
+            type=str
         )
 
     # Parse the args
