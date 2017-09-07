@@ -3,15 +3,52 @@ A module to load data and scale appropriately (based on methods and classes in
 maxTools.waveform_dataset)
 
 '''
+import cPickle as pickle
 import numpy as np
 
 from maxTools import waveform_dataset
 
 from sklearn.preprocessing import StandardScaler
 
+SCALE_FILEPATH = "scale.p"
+
+def save_scaling(data, filepath):
+    '''
+    Calculates the scaling necessary to rescale data to have a mean of 0 and a
+    variance of 1, then pickles this scaling to the file given by filepath.
+
+    Arguments:
+        data - an array of shape [n, 128] of data for which the scaling is to
+               be calculated
+        filepath - the path where the pickled scaling is to be saved
+
+    '''
+    scaler = StandardScaler()
+    scaler.fit(data)
+    pickle.dump(scaler.scale_, open(filepath, 'w'))
+
+def scale_data(data, scale=None):
+    '''
+    Scales waveform data to have a mean of 0 and a variance of 1, using scaling
+    calculated from the training data waveforms. The data is scaled in place, 
+    i.e. no copy is made or returned. 
+
+    Arguments:
+        data - an array of shape [n, 128] of data to be scaled
+        scale - an array of scalings of shape [128], if None then a default
+                scaling is loaded from a pickled object (default: None)
+
+    No returns
+
+    '''
+    if scale is None:
+        scale = pickle.load(open(SCALE_FILEPATH))
+
+    np.multiply(data, scale, out=data)
+
 def load_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True):
-    ''' 
-    Load data using methods in maxTools.waveform_dataset, preprocess it, and 
+    '''
+    Load data using methods in maxTools.waveform_dataset, preprocess it, and
     return the resulting Datasets object
 
     The data is preprocessed to have mean of 0 and variance of 1. 
@@ -55,9 +92,8 @@ def load_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True):
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        rescaler = StandardScaler(copy=False)
-        rescaler.fit_transform(data.train.waveforms)
-        rescaler.transform(data.val.waveforms)
-        rescaler.transform(data.test.waveforms)
+        scale_data(data.train.waveforms)
+        scale_data(data.val.waveforms)
+        scale_data(data.test.waveforms)
         
     return data
