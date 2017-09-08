@@ -38,8 +38,8 @@ def purity_efficiency_plot(y_true, y_pred, inset=True, savepath=None):
         # Use a zoom of five, place in lower left corner, pad border by 3
         axins = zoomed_inset_axes(ax, zoom=5, loc=4, borderpad=3)
 
-        axins.plot(purity, thresholds)
-        axins.plot(efficiency, thresholds)
+        axins.plot(thresholds, purity)
+        axins.plot(thresholds, efficiency)
 
         # Set limits for inset plot
         axins.set_xlim(0.9, 1)
