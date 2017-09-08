@@ -5,8 +5,8 @@ import csv
 import argparse
 
 from myTools.train_tools.resource_limiter import limit_resources
-from myTools.data_loader import load_data
-from myTools.WaveformGenerator import WaveformGenerator
+from myTools.waveform_tools.data_loader import load_data
+from myTools.waveform_tools.waveform_generator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver, MODEL_DIR, MODEL_SUMMARY
