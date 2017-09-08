@@ -74,6 +74,7 @@ def main(
             0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
             1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
             2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
+            NB in practice, 0 seems to be significantly faster, even with the GPU
         verbose - dictates the amount of output that keras gives
         cp_interval - the number of epochs between saving model checkpoints (default = 100)
         test - suppresses saving of model and output of logs (for testing new features; default = False)
@@ -246,7 +247,8 @@ if __name__ == "__main__":
             help='''sets the implementation used by Keras for the LSTM layers (default = 0)
             \t0 - RNN uses fewer, larger, matrix products (good for CPU but uses more memory)
             \t1 - Uses fewer, smaller, matrix products (slow on CPU, may be faster than 0 on GPU, uses less memory)
-            \t2 - Combines different gates in LSTM into one matrix (more efficient on GPU)''',
+            \t2 - Combines different gates in LSTM into one matrix (more efficient on GPU)
+            \tNB In practice, 0 seems to be the fastest, even on GPU''',
             type=int, dest='implementation',
             default=0 
         )
