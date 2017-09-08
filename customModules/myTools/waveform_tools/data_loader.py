@@ -92,9 +92,8 @@ def load_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True):
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        scale_data(data.train.waveforms)
-        scale_data(data.val.waveforms)
-        scale_data(data.test.waveforms)
+        for dataset in data:
+            scale_data(dataset.waveforms)
         
     return data
 
@@ -145,11 +144,7 @@ def load_eval_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True)
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        mask = np.logical_or((data.train.labels[:, 0] == 1), (data.train.labels[:, 1] == 1))
-        rescaler = StandardScaler(copy=False)
-        rescaler.fit(data.train.waveforms[mask])
-        rescaler.transform(data.train.waveforms)
-        rescaler.transform(data.val.waveforms)
-        rescaler.transform(data.test.waveforms)
+        for dataset in data:
+            scale_data(dataset.waveforms)
         
     return data
