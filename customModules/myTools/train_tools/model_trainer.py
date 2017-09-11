@@ -24,12 +24,12 @@ def train_model(model, data, params, nn_str, comment="", verbose=False, initial_
     callbacks = [train_gen, val_gen]
 
     if test == False:
-        tb = TensorBoard(log_dir='logs')
         model_saver = ModelSaver(
                 model, 'retrain', params, 
                 comment=comment,
                 verbose=verbose, period=cp_interval
             )
+        tb = TensorBoard(log_dir='logs/logs-' + model_saver.model_name)
         callbacks += [tb, model_saver]
 
     # Train model

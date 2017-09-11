@@ -121,8 +121,8 @@ class ModelSaver(ModelCheckpoint):
         '''
         # Create savepath
         datetime = time.strftime("%Y%m%d_%H%M%S_")
-        model_name = datetime + nn_str + 'Keras.h5'
-        filepath = MODEL_DIR + model_name
+        self.model_name = datetime + nn_str + 'Keras'
+        filepath = MODEL_DIR + model_name + '.h5'
 
         # Initialise the parent class ModelSaver
         super(ModelSaver, self).__init__(
@@ -136,7 +136,7 @@ class ModelSaver(ModelCheckpoint):
         self._save_model()
 
         # Update CSV file listing models
-        self._write_summary(model_name, params, comment)
+        self._write_summary(self.model_name + '.h5', params, comment)
 
     def on_train_end(self, logs=None):
         '''
