@@ -65,6 +65,8 @@ def purity_efficiency_plot(y_true, y_pred, inset=True, savepath=None):
     else:
         plt.savefig(savepath)
 
+    plt.close(fig)
+
 def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, savepath=None):
     # Set up bins and counts
     # Need 0 to 1 inclusive
@@ -133,3 +135,5 @@ def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, s
         plt.show()
     else:
         plt.savefig(savepath)
+
+    plt.close(fig)

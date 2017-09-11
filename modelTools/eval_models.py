@@ -41,9 +41,10 @@ def main(
     if data == None:
         data = load_eval_data(verbose=verbose)
 
-
     for model_path in model_list:
-        # Load model
+        if verbose:
+            print('Loading ' + model_path)
+	# Load model
         model = load_model(model_path)
 
         # Get the name of the model
@@ -70,6 +71,7 @@ def main(
         print()
         print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.5)
         print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.9)
+	print()
 
         purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], savepath="plots/" + model_name + "_pe_plot.pdf")
         rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
