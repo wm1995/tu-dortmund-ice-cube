@@ -11,6 +11,7 @@ from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver, MODEL_DIR, MODEL_SUMMARY
 from myTools.model_tools.model_loader import load_model, load_uncompiled_model
+from mytools.train_tools.model_trainer import train_model
 
 import tensorflow as tf
 from keras import backend as K
@@ -100,45 +101,12 @@ def main(
     if data == None:
         data = load_data(verbose=verbose)
 
-    # Create generators for training, validation
-    train_gen = WaveformGenerator(
-            data.train, 
-            batch_size=params['batch_size'], 
-            balanced=True, 
-            dp_prob=params['dp_prob'],
-            decay=params['decay']
-        )
-
-    val_gen = WaveformGenerator(
-            data.val, 
-            batch_size=params['batch_size'], 
-            balanced=True, 
-            dp_prob=params['dp_prob'],
-            decay=params['decay']
-        )
-
-    # Prepare callbacks
-    callbacks = [train_gen, val_gen]
-
-    if test == False:
-        tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-        model_saver = ModelSaver(
-                model, 'retrain', params, 
-                comment="Retrained from {}".format(model_name),
-                verbose=verbose, period=cp_interval
-            )
-        callbacks += [tb, model_saver]
-
-    # Train model
-    model.fit_generator(
-            train_gen, 
-            steps_per_epoch=params['steps_per_epoch'], 
-            epochs=params['no_epochs'],
-            verbose=int(verbose), 
-            validation_data=val_gen,
-            validation_steps=params['steps_per_epoch'], 
-            callbacks=callbacks,
-            initial_epoch=curr_epoch
+    train_model(
+            model, data, 
+            params, 'retrain',
+            verbose=verbose,
+            comment="Retrained from {}".format(model_name),
+            initial_epoch=current_epoch
         )
     
     # Evaluate model
