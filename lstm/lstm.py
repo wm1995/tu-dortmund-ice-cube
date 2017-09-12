@@ -16,6 +16,7 @@ from myTools.waveform_tools.waveform_generator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver
+from mytools.train_tools.model_trainer import train_model
 
 import tensorflow as tf
 from keras import backend as K
@@ -133,41 +134,10 @@ def main(
             metrics=['accuracy', precision, recall, f1, class_balance]
         )
 
-    # Create generators for training, validation
-    train_gen = WaveformGenerator(
-            data.train, 
-            batch_size=params['batch_size'], 
-            balanced=True, 
-            dp_prob=params['dp_prob'],
-            decay=params['decay']
-        )
-
-    val_gen = WaveformGenerator(
-            data.val, 
-            batch_size=params['batch_size'], 
-            balanced=True, 
-            dp_prob=params['dp_prob'],
-            decay=params['decay']
-        )
-
-    # Prepare callbacks
-    callbacks = [train_gen, val_gen]
-
-    if test == False:
-        tb = TensorBoard(log_dir='logs', histogram_freq=0, write_graph=True)
-        model_saver = ModelSaver(model, 'lstm', params, verbose=verbose, period=cp_interval)
-        callbacks += [tb, model_saver]
-
-
-    # Train model
-    model.fit_generator(
-            train_gen, 
-            steps_per_epoch=params['steps_per_epoch'], 
-            epochs=params['no_epochs'], 
-            verbose=int(verbose), 
-            validation_data=val_gen,
-            validation_steps=params['steps_per_epoch'], 
-            callbacks=callbacks
+    train_model(
+            model, data,
+            params, 'lstm',
+            verbose=verbose
         )
     
     # Evaluate model

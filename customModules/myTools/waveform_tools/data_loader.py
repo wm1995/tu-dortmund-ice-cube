@@ -4,47 +4,54 @@ maxTools.waveform_dataset)
 
 '''
 import cPickle as pickle
+import os
 import numpy as np
 
 from maxTools import waveform_dataset
 
 from sklearn.preprocessing import StandardScaler
 
-SCALE_FILEPATH = "scale.p"
+SCALE_FILE = "scale.p"
+SCALE_FILEPATH = os.path.join(os.path.dirname(__file__), SCALE_FILE)
 
 def save_scaling(data, filepath):
     '''
-    Calculates the scaling necessary to rescale data to have a mean of 0 and a
-    variance of 1, then pickles this scaling to the file given by filepath.
+    Calculates the scaling that would give the data passed a mean of 0 and a
+    variance of 1, then pickles this scaling in the form of an 
+    sklearn.preprocessing.StandardScaler object to the file given by filepath.
 
     Arguments:
         data - an array of shape [n, 128] of data for which the scaling is to
                be calculated
-        filepath - the path where the pickled scaling is to be saved
+        filepath - the path where the pickled scaler is to be saved
 
+    No returns
     '''
-    scaler = StandardScaler()
+    scaler = StandardScaler(copy=False)
     scaler.fit(data)
-    pickle.dump(scaler.scale_, open(filepath, 'w'))
+    pickle.dump(scaler, open(filepath, 'w'))
 
-def scale_data(data, scale=None):
+def scale_data(data, scaler=None):
     '''
-    Scales waveform data to have a mean of 0 and a variance of 1, using scaling
-    calculated from the training data waveforms. The data is scaled in place, 
-    i.e. no copy is made or returned. 
+    Applies a pre-calculated scaling to an array of waveform data; the scaling
+    is calculated to give a mean of 0 and a variance of 1. A scaler object can
+    be passed as an argument, otherwise a default scaler calculated from the
+    training data is loaded. The data is scaled in place, i.e. no copy is made
+    or returned. 
 
     Arguments:
         data - an array of shape [n, 128] of data to be scaled
-        scale - an array of scalings of shape [128], if None then a default
-                scaling is loaded from a pickled object (default: None)
+        scaler - an sklearn.preprocessing.StandardScaler object that is 
+                 pre-fitted to the data; if None, loads default scaling from 
+                 file (default: None)
 
     No returns
 
     '''
-    if scale is None:
-        scale = pickle.load(open(SCALE_FILEPATH))
+    if scaler is None:
+        scaler = pickle.load(open(SCALE_FILEPATH))
 
-    np.multiply(data, scale, out=data)
+    scaler.transform(data)
 
 def load_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True):
     '''
@@ -92,9 +99,8 @@ def load_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True):
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        scale_data(data.train.waveforms)
-        scale_data(data.val.waveforms)
-        scale_data(data.test.waveforms)
+        for dataset in data:
+            scale_data(dataset.waveforms)
         
     return data
 
@@ -145,11 +151,7 @@ def load_eval_data(verbose=True, train_ratio=0.8, test_ratio=0.13, rescale=True)
 
     # Rescale input data to give training data mean 0 and stdev 1
     if rescale is True:
-        mask = np.logical_or((data.train.labels[:, 0] == 1), (data.train.labels[:, 1] == 1))
-        rescaler = StandardScaler(copy=False)
-        rescaler.fit(data.train.waveforms[mask])
-        rescaler.transform(data.train.waveforms)
-        rescaler.transform(data.val.waveforms)
-        rescaler.transform(data.test.waveforms)
+        for dataset in data:
+            scale_data(dataset.waveforms)
         
     return data
