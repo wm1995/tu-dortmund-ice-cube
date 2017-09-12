@@ -44,7 +44,7 @@ def main(
     for model_path in model_list:
         if verbose:
             print('Loading ' + model_path)
-	# Load model
+        # Load model
         model = load_model(model_path)
 
         # Get the name of the model
@@ -63,7 +63,7 @@ def main(
 
         # Rescale weights
         weights = dataset.weights * secs_per_year / data_ratio
-            
+
         test_preds = model.predict(dataset.waveforms, verbose=int(verbose))
 
         training_mask = np.logical_or(dataset.labels[:, 0] == 1, dataset.labels[:, 1] == 1)
@@ -71,7 +71,7 @@ def main(
         print()
         print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.5)
         print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.9)
-	print()
+        print()
 
         purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], savepath="plots/" + model_name + "_pe_plot.pdf")
         rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
