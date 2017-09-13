@@ -58,7 +58,7 @@ def main(
     """
     model_name = filepath.split('/')[-1]
 
-    resource_limiter(no_threads=no_threads)
+    limit_resources(no_threads=no_threads)
 
     # Read initial parameters
     # Code adapted from https://docs.python.org/2/library/csv.html

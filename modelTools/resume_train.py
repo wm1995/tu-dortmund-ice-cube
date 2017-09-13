@@ -58,7 +58,7 @@ def main(
     """
     model_name = filepath.split('/')[-1]
 
-    resource_limiter(no_threads=no_threads)
+    limit_resources(no_threads=no_threads)
 
     # Get model
     if params['lr'] != None:

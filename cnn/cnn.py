@@ -79,7 +79,7 @@ def main(
     if data == None:
         data = load_data(verbose=verbose)
 
-    resource_limiter(no_threads=no_threads)
+    limit_resources(no_threads=no_threads)
 
     # Define model
     model = Sequential()
