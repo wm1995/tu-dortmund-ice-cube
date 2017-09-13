@@ -41,6 +41,7 @@ def weighted_unique_confusion_matrix(y_true, y_pred, weights, ids):
     assert y_true.shape[0] == weights.shape[0], (
         'Labels and weights should have the same shape')
     from sklearn.utils.multiclass import unique_labels
+    # Get the unique labels (generally [0, 1])
     labels = unique_labels(y_true, y_pred)
     n_labels = labels.size
 
@@ -48,6 +49,7 @@ def weighted_unique_confusion_matrix(y_true, y_pred, weights, ids):
     # convert yt, yp into index
     y_pred = np.array([label_to_ind.get(x, n_labels + 1) for x in y_pred])
     y_true = np.array([label_to_ind.get(x, n_labels + 1) for x in y_true])
+    # If using two classes, get an array of 0s and 1s for each
 
     # intersect y_pred, y_true with labels, eliminate items not in labels
     ind = np.logical_and(y_pred < n_labels, y_true < n_labels)
@@ -57,11 +59,17 @@ def weighted_unique_confusion_matrix(y_true, y_pred, weights, ids):
     assert n_labels == 2, (
         'This shouldnt be used with more than 2 labels, '
         'adjust this fnctn first')
+    # Sort by id
     sorted_ind = np.argsort(ids)
+    # Get indices of first occurrences of unique ids
     u_val, u_ind = np.unique(ids[sorted_ind], return_index=True)
+    # Get the true label for each id (doesn't matter which, all the same)
     y_true_evt = y_true[sorted_ind][u_ind]
+    # Sum up the number of detected double pulse events for each id
     y_pred_evt = np.add.reduceat(y_pred[sorted_ind], u_ind)
+    # Clip at 1 (i.e. multiple detections = one detection = 1)
     y_pred_evt = np.clip(y_pred_evt, 0, 1)
+    # Select the necessary weights
     weights = weights[sorted_ind][u_ind]
 
     from scipy.sparse import coo_matrix
