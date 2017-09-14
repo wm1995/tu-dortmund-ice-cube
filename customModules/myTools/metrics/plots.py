@@ -129,6 +129,11 @@ def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, s
     ax.set_ylabel("Waveforms per year")
     ax.set_xlim(0, 1)
     ax.set_yscale('log')
+    # Set y axis limits if 2 or 5 classes
+    if (counts.shape[0]) == 2:
+        ax.set_ylim(1e-5, 3e2)
+    elif (counts.shape[0]) == 5:
+        ax.set_ylim(1e-5, 3e6)
     ax.legend(bbox_to_anchor=(0.5 - x_offset, 1), loc="lower center", ncol=2, frameon=False)
 
     if savepath is None:
