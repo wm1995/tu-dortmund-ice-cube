@@ -137,3 +137,95 @@ def rate_plot(y_true, y_pred, weights, bin_size=0.02, combine_nu_tau_cc=False, s
         plt.savefig(savepath)
 
     plt.close(fig)
+
+def event_rate_plot(y_true, y_pred, weights, ids, bin_size=0.02, combine_nu_tau_cc=False, savepath=None):
+    # Sort by id
+    sorted_ind = np.argsort(ids)
+    # Find unique ids and their indices
+    u_val, u_ind = np.unique(ids[sorted_ind], return_index=True)
+    # Get the true labels for the event
+    # (Doesn't matter which we take, they're all the same for an event)
+    y_true_evt = y_true[sorted_ind][u_ind]
+    # Get the maximum prediction for each event
+    y_pred_evt = np.maximum.reduceat(y_pred[:, 1][sorted_ind], u_ind)
+    # Get the unique ids
+    weights = weights[sorted_ind][u_ind]
+
+    # Set up bins and counts
+    # Need 0 to 1 inclusive
+    bins = np.arange(0, 1.0 + 1e-8, bin_size)
+    counts = np.zeros((y_true_evt.shape[1], len(bins)))
+
+    # Get bin indices
+    inds = np.digitize(y_pred_evt, bins, right=True)
+
+    # Convert labels to array of masks
+    # i.e. if 5 labels, label_mask[1] is a mask that selects only events label 2
+    label_mask = y_true_evt.astype(bool)
+
+    # Sum weights for each bin
+    for i in range(len(inds)):
+        counts[label_mask[i, :], inds[i]] += weights[i]
+
+    # Set labels for each bin
+    labels = {'0':r'Cascade-like background',
+              '1':r'Double-pulse events',
+              '2':r'Other $\nu_\tau$ CC events',
+              '3':r'$\nu_\mu$ CC events',
+              '4':r'Atmospheric muons'}
+
+    # Throw an error if both 1 and 2 labels and not combined
+    if counts.shape[0] >= 3 and not combine_nu_tau_cc:
+        raise Exception('Nu tau events should be combined for true event rates if both double pulse and other nu tau CC events are used')
+
+    # If combining nu_tau_cc events, change label
+    if combine_nu_tau_cc:
+        labels['1'] = r'$\nu_\tau$ CC events'
+
+    # Set larger font for legibility
+    matplotlib.rcParams.update({'font.size': FONT_SIZE})
+
+    # Prepare plots
+    fig, ax = plt.subplots()
+
+    # With FONT_SIZE = 14, need to shrink plot
+    box = ax.get_position()
+
+    # Set offsets for shrinking
+    x_offset = 0.03
+    if counts.shape[0] == 2:
+        y_offset = 0
+    elif counts.shape[0] == 5:
+        y_offset = 0.05
+
+    # Shrink plot
+    ax.set_position([box.x0 + box.width*x_offset, box.y0, box.width * (1 - x_offset), box.height * (1 - y_offset)])
+
+    # Plot events for each label
+    for i in range(counts.shape[0]):
+        if combine_nu_tau_cc:
+            # If combining events, combine under label 1
+            if i == 1 and counts.shape[0] > 2:
+                counts[1] += counts[2]
+            # This makes label 2 redundant, so we can skip it
+            elif i == 2:
+                continue
+        ax.step(bins, counts[i], label=labels[str(i)])
+
+    ax.set_xlabel("Confidence")
+    ax.set_ylabel("Events per year")
+    ax.set_xlim(0, 1)
+    ax.set_yscale('log')
+    # Set y axis limits if 2 or 5 classes
+    if (counts.shape[0]) == 2:
+        ax.set_ylim(1e-5, 3e1)
+    elif (counts.shape[0]) == 5:
+        ax.set_ylim(1e-5, 3e6)
+    ax.legend(bbox_to_anchor=(0.5 - x_offset, 1), loc="lower center", ncol=2, frameon=False)
+
+    if savepath is None:
+        plt.show()
+    else:
+        plt.savefig(savepath)
+
+    plt.close(fig)

@@ -4,10 +4,10 @@ import numpy as np
 import argparse
 
 from myTools.train_tools.resource_limiter import limit_resources
-from myTools.waveform_tools.data_loader import load_data, load_eval_data
+from myTools.waveform_tools.data_loader import load_eval_data
 from myTools.model_tools.model_loader import load_model
 from myTools.metrics.sklearn import print_metric_results
-from myTools.metrics.plots import purity_efficiency_plot, rate_plot
+from myTools.metrics.plots import purity_efficiency_plot, rate_plot, event_rate_plot
 
 def main(
         model_list,
@@ -50,13 +50,15 @@ def main(
         training_mask = np.logical_or(dataset.labels[:, 0] == 1, dataset.labels[:, 1] == 1)
 
         print()
-        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.5)
-        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], dataset.ids[training_mask], th=0.9)
+        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], th=0.5)
+        print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], th=0.9)
         print()
 
-        purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], savepath="plots/" + model_name + "_pe_plot.pdf")
-        rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask, 0:2], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
+        purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], savepath="plots/" + model_name + "_pe_plot.pdf")
+        rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
         rate_plot(dataset.labels, test_preds, weights, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_rate_plot.pdf")
+        event_rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], savepath="plots/" + model_name + "_train_event_rate_plot.pdf")
+        event_rate_plot(dataset.labels, test_preds, weights, dataset.ids, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_event_rate_plot.pdf")
 
 if __name__ == "__main__":
     # Initialise the arg parser
