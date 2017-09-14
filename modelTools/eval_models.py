@@ -48,7 +48,7 @@ def main(
         test_preds = model.predict(dataset.waveforms, verbose=int(verbose))
 
         training_mask = np.logical_or(dataset.labels[:, 0] == 1, dataset.labels[:, 1] == 1)
-        tau_mask = np.logical_or(training_mask, dataset.labels[:, 1] == 1)
+        tau_mask = np.logical_or(training_mask, dataset.labels[:, 2] == 1)
 
         print()
         print_metric_results(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], th=0.5)
