@@ -57,13 +57,13 @@ def main(
 
         purity_efficiency_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], savepath="plots/" + model_name + "_pe_plot.pdf")
         rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], savepath="plots/" + model_name + "_train_rate_plot.pdf")
-        rate_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], savepath="plots/" + model_name + "_tau_rate_plot.pdf")
+        rate_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], combine_nu_tau_cc=True, savepath="plots/" + model_name + "_tau_rate_plot.pdf")
         rate_plot(dataset.labels, test_preds, weights, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_rate_plot.pdf")
         event_rate_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], savepath="plots/" + model_name + "_train_event_rate_plot.pdf")
-        event_rate_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], dataset.ids[tau_mask], savepath="plots/" + model_name + "_tau_event_rate_plot.pdf")
+        event_rate_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], dataset.ids[tau_mask], combine_nu_tau_cc=True, savepath="plots/" + model_name + "_tau_event_rate_plot.pdf")
         event_rate_plot(dataset.labels, test_preds, weights, dataset.ids, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_event_rate_plot.pdf")
         cut_survival_plot(dataset.labels[training_mask, 0:2], test_preds[training_mask], weights[training_mask], dataset.ids[training_mask], savepath="plots/" + model_name + "_train_cut_survival_plot.pdf")
-        cut_survival_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], dataset.ids[tau_mask], savepath="plots/" + model_name + "_tau_cut_survival_plot.pdf")
+        cut_survival_plot(dataset.labels[tau_mask, 0:3], test_preds[tau_mask], weights[tau_mask], dataset.ids[tau_mask], combine_nu_tau_cc=True, savepath="plots/" + model_name + "_tau_cut_survival_plot.pdf")
         cut_survival_plot(dataset.labels, test_preds, weights, dataset.ids, combine_nu_tau_cc=True, savepath="plots/" + model_name + "_cut_survival_plot.pdf")
 
 if __name__ == "__main__":
