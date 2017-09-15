@@ -11,7 +11,7 @@ from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver, MODEL_DIR, MODEL_SUMMARY
 from myTools.model_tools.model_loader import load_model, load_uncompiled_model
-from mytools.train_tools.model_trainer import train_model
+from myTools.train_tools.model_trainer import train_model
 
 import tensorflow as tf
 from keras import backend as K
@@ -106,7 +106,8 @@ def main(
             model, data,
             params, 'retrain',
             comment="Retrained from {}; top {} layers frozen".format(model_name, no_frozen),
-            verbose=verbose
+            verbose=verbose,
+            test=test
         )
     
     # Evaluate model

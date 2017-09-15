@@ -2,7 +2,7 @@ from myTools.waveform_tools.waveform_generator import WaveformGenerator
 
 from keras.callbacks import TensorBoard
 
-def train_model(model, data, params, nn_str, comment="", verbose=False, initial_epoch=0):
+def train_model(model, data, params, nn_str, comment="", verbose=False, initial_epoch=0, test=False):
     # Create generators for training, validation
     train_gen = WaveformGenerator(
             data.train, 

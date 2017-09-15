@@ -16,7 +16,7 @@ from myTools.waveform_tools.waveform_generator import WaveformGenerator
 from myTools.metrics.keras import precision, recall, f1, class_balance
 from myTools.metrics.sklearn import print_metric_results
 from myTools.model_tools.model_saver import ModelSaver
-from mytools.train_tools.model_trainer import train_model
+from myTools.train_tools.model_trainer import train_model
 
 import tensorflow as tf
 from keras import backend as K
@@ -111,7 +111,8 @@ def main(
     train_model(
             model, data,
             params, 'snn',
-            verbose=verbose
+            verbose=verbose,
+            test=test
         )
 
     # Evaluate model
