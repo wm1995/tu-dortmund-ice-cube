@@ -245,8 +245,6 @@ def get_indices(num_examples, train_ratio=.8, test_ratio=.13):
 
 def get_signal_mask(df):
     masks = []
-    # Select CC nutau interactions in the detector
-    masks.append(df['InIceLabel'] == 161)
     # Select waveforms whose DOMs are close to both interaction
     # vertices and still suficiently separated in time
     masks.append(df['GeometricalSelection'] == 1)
@@ -265,7 +263,7 @@ def get_signal_mask(df):
     return selection_mask
 
 
-def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8, test_ratio=.13, verbose=True):
+def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8, test_ratio=.13, load_eval_data=False, verbose=True):
     '''
     Reads data. `datasets` should be a list of tuples. Each tuple has to
     contain the datasetnumbers as a string, the interactions to be
@@ -332,10 +330,14 @@ def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8,
             rows = waveform.nrows
             to_i = from_i + rows
 
-            interaction[from_i:to_i] = get_values_from_table(
-                data, ['interaction'])
-            weights[from_i:to_i] = get_values_from_table(
-                weight_node, [weight_name])
+	    if dset[0] == '11057':
+		weights[from_i:to_i] = get_values_from_table(
+                    weight_node, ['GaisserH3aWeight'])
+            else:
+                interaction[from_i:to_i] = get_values_from_table(
+                    data, ['interaction'])
+                weights[from_i:to_i] = get_values_from_table(
+                    weight_node, [weight_name])
             id_values[from_i:to_i] = get_values_from_table(
                 data, ['run_id', 'event_id', 'sub_event_id'])
             if dset[0] == '11538':
@@ -364,12 +366,39 @@ def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8,
 
         for comp in dset[1]:
             if dset[0] == '11538' and comp == 'DP':
+                # Double pulse tau neutrino events
                 # Apply cuts on the derivate df
-                signal_mask = get_signal_mask(derivate_df)
+                # Select CC nutau interactions in the detector
+                tau_mask = (derivate_df['InIceLabel'] == 161)
+                deriv_mask = get_signal_mask(derivate_df)
+                signal_mask = np.logical_and(tau_mask, deriv_mask)
                 comp_wfs = wfs[signal_mask, :]
                 weights = weight[signal_mask]
                 ids = unique_id[signal_mask]
                 lbl = 1
+            elif dset[0] == '11538' and comp == 'NDP':
+                # Non-dp tau neutrino cc events
+                # Invert above cuts on the derivate df
+                tau_mask = (derivate_df['InIceLabel'] == 161)
+                deriv_mask = np.logical_not(get_signal_mask(derivate_df))
+                signal_mask = np.logical_and(tau_mask, deriv_mask)
+                comp_wfs = wfs[signal_mask, :]
+                weights = weight[signal_mask]
+                ids = unique_id[signal_mask]
+                lbl = 2
+            elif dset[0] == '11069' and comp == 'CC':
+                # Muon cc events
+                mask = (interaction == 1)
+                comp_wfs = wfs[mask, :]
+                weights = weight[mask]
+                ids = unique_id[mask]
+                lbl = 3
+            elif dset[0] == '11057':
+                # Atmospheric muons
+                comp_wfs = wfs
+                weights = weight
+                ids = unique_id
+                lbl = 4
             elif comp == 'NC':
                 mask = (interaction == 0)
                 comp_wfs = wfs[mask, :]
@@ -386,6 +415,11 @@ def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8,
                 ids = unique_id[mask]
                 lbl = 0
 
+            if load_eval_data:
+                n_classes = 5
+            else:
+                n_classes = 2            
+
             def labels(shape, lbl, n_classes=2):
                 labels = np.zeros((shape, n_classes))
                 labels[:, lbl] = 1
@@ -394,15 +428,15 @@ def read_data(datasets, combined=False, weight_name='hese_flux', train_ratio=.8,
             num_examples = comp_wfs.shape[0]
             train_index, test_index, val_index = get_indices(num_examples, train_ratio = train_ratio, test_ratio = test_ratio)
             train = DataSet(comp_wfs[:train_index],
-                            labels(train_index, lbl),
+                            labels(train_index, lbl, n_classes),
                             weights[:train_index],
                             ids[:train_index])
             test = DataSet(comp_wfs[train_index:train_index+test_index],
-                           labels(test_index, lbl),
+                           labels(test_index, lbl, n_classes),
                            weights[train_index:train_index+test_index],
                            ids[train_index:train_index+test_index])
             val = DataSet(comp_wfs[val_index:],
-                          labels(num_examples-val_index, lbl),
+                          labels(num_examples-val_index, lbl, n_classes),
                           weights[val_index:],
                           ids[val_index:])
             DS = Datasets(train=train, test=test, val=val)
